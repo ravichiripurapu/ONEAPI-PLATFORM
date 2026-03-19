@@ -54,13 +54,6 @@ public class DomainInfo {
     @Column(name = "last_synced_at")
     private LocalDateTime lastSyncedAt;
 
-    /**
-     * Store the original SDK Domain JSON for full fidelity
-     */
-    @Lob
-    @Column(name = "sdk_domain_json")
-    private String sdkDomainJson;
-
     @OneToMany(mappedBy = "domain", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<EntityInfo> dataEntities = new HashSet<>();
 

@@ -1,13 +1,13 @@
 package io.oneapi.admin.service.reporting;
 
 import io.oneapi.admin.dto.reporting.ReportDTO;
-import io.oneapi.admin.entity.Catalog;
 import io.oneapi.admin.entity.Report;
 import io.oneapi.admin.entity.SavedQuery;
+import io.oneapi.admin.entity.SourceInfo;
 import io.oneapi.admin.mapper.ReportingMapper;
-import io.oneapi.admin.repository.CatalogRepository;
 import io.oneapi.admin.repository.ReportRepository;
 import io.oneapi.admin.repository.SavedQueryRepository;
+import io.oneapi.admin.repository.SourceInfoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,7 +28,7 @@ public class ReportService {
 
     private final ReportRepository reportRepository;
     private final SavedQueryRepository savedQueryRepository;
-    private final CatalogRepository catalogRepository;
+    private final SourceInfoRepository sourceInfoRepository;
     private final ReportingMapper mapper;
 
     public ReportDTO create(ReportDTO dto) {
@@ -37,13 +37,13 @@ public class ReportService {
         SavedQuery query = savedQueryRepository.findById(dto.getQueryId())
             .orElseThrow(() -> new IllegalArgumentException("SavedQuery not found with ID: " + dto.getQueryId()));
 
-        Catalog catalog = null;
-        if (dto.getCatalogId() != null) {
-            catalog = catalogRepository.findById(dto.getCatalogId())
-                .orElseThrow(() -> new IllegalArgumentException("Catalog not found with ID: " + dto.getCatalogId()));
+        SourceInfo source = null;
+        if (dto.getSourceId() != null) {
+            source = sourceInfoRepository.findById(dto.getSourceId())
+                .orElseThrow(() -> new IllegalArgumentException("Source not found with ID: " + dto.getSourceId()));
         }
 
-        Report entity = mapper.toEntity(dto, query, catalog);
+        Report entity = mapper.toEntity(dto, query, source);
         Report saved = reportRepository.save(entity);
         log.info("Created report with ID: {}", saved.getId());
 
@@ -59,13 +59,13 @@ public class ReportService {
         SavedQuery query = savedQueryRepository.findById(dto.getQueryId())
             .orElseThrow(() -> new IllegalArgumentException("SavedQuery not found with ID: " + dto.getQueryId()));
 
-        Catalog catalog = null;
-        if (dto.getCatalogId() != null) {
-            catalog = catalogRepository.findById(dto.getCatalogId())
-                .orElseThrow(() -> new IllegalArgumentException("Catalog not found with ID: " + dto.getCatalogId()));
+        SourceInfo source = null;
+        if (dto.getSourceId() != null) {
+            source = sourceInfoRepository.findById(dto.getSourceId())
+                .orElseThrow(() -> new IllegalArgumentException("Source not found with ID: " + dto.getSourceId()));
         }
 
-        mapper.updateEntityFromDTO(dto, entity, query, catalog);
+        mapper.updateEntityFromDTO(dto, entity, query, source);
         Report updated = reportRepository.save(entity);
         log.info("Updated report ID: {}", id);
 
@@ -97,9 +97,9 @@ public class ReportService {
     }
 
     @Transactional(readOnly = true)
-    public List<ReportDTO> findByCatalog(Long catalogId) {
-        log.debug("Finding reports for catalog: {}", catalogId);
-        return mapper.reportsToDTOs(reportRepository.findByCatalogId(catalogId));
+    public List<ReportDTO> findBySource(Long sourceId) {
+        log.debug("Finding reports for source: {}", sourceId);
+        return mapper.reportsToDTOs(reportRepository.findBySourceId(sourceId));
     }
 
     @Transactional(readOnly = true)

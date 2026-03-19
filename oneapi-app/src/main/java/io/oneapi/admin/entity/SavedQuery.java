@@ -30,21 +30,15 @@ public class SavedQuery {
     @Column(nullable = false)
     private String name;
 
-    @Lob
-    @Column
+    @Column(length = 2000)
     private String description;
 
-    @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, length = 10000)
     private String queryText;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "source_id", nullable = false)
     private SourceInfo source;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "catalog_id")
-    private Catalog catalog;
 
     @Column(nullable = false)
     private Boolean isPublic = false;

@@ -17,7 +17,7 @@ public interface DashboardRepository extends JpaRepository<Dashboard, Long> {
 
     List<Dashboard> findByCreatedBy(String createdBy);
 
-    List<Dashboard> findByCatalogId(Long catalogId);
+    List<Dashboard> findBySourceId(Long sourceId);
 
     List<Dashboard> findByIsPublicTrue();
 

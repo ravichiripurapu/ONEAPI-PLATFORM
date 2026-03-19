@@ -48,8 +48,7 @@ public class EntityInfo {
     @Column(name = "size_in_bytes")
     private Long sizeInBytes;
 
-    @Lob
-    @Column(name = "table_comment")
+    @Column(name = "table_comment", length = 1000)
     private String tableComment;
 
     @Column(name = "discovered_at")
@@ -57,13 +56,6 @@ public class EntityInfo {
 
     @Column(name = "last_synced_at")
     private LocalDateTime lastSyncedAt;
-
-    /**
-     * Store the original SDK DataEntity JSON for full fidelity
-     */
-    @Lob
-    @Column(name = "sdk_entity_json")
-    private String sdkEntityJson;
 
     @OneToMany(mappedBy = "dataEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<FieldInfo> fields = new HashSet<>();

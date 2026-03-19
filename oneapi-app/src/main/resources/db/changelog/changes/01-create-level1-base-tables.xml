@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Level 1: Base tables with NO foreign keys -->
+
+    <!-- Create sequence for ID generation -->
+    <changeSet id="01-create-sequence-generator" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="sequence_generator"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="sequence_generator" startValue="1" incrementBy="50"/>
+    </changeSet>
+
+    <!-- Create app_user table -->
+    <changeSet id="01-create-app-user" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="app_user"/>
+            </not>
+        </preConditions>
+        <createTable tableName="app_user">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="login" type="VARCHAR(50)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="password_hash" type="VARCHAR(60)"/>
+            <column name="first_name" type="VARCHAR(50)"/>
+            <column name="last_name" type="VARCHAR(50)"/>
+            <column name="email" type="VARCHAR(254)">
+                <constraints unique="true"/>
+            </column>
+            <column name="activated" type="BOOLEAN"/>
+            <column name="lang_key" type="VARCHAR(10)"/>
+            <column name="image_url" type="VARCHAR(256)"/>
+            <column name="activation_key" type="VARCHAR(20)"/>
+            <column name="reset_key" type="VARCHAR(20)"/>
+            <column name="reset_date" type="TIMESTAMP"/>
+            <column name="created_by" type="VARCHAR(50)"/>
+            <column name="created_date" type="TIMESTAMP"/>
+            <column name="last_modified_by" type="VARCHAR(50)"/>
+            <column name="last_modified_date" type="TIMESTAMP"/>
+        </createTable>
+        <createIndex indexName="idx_user_email" tableName="app_user">
+            <column name="email"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Create source_info table -->
+    <changeSet id="01-create-source-info" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="source_info"/>
+            </not>
+        </preConditions>
+        <createTable tableName="source_info">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="type" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="host" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="port" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="database" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="username" type="VARCHAR(255)"/>
+            <column name="password" type="VARCHAR(255)"/>
+            <column name="additional_params" type="VARCHAR(2000)"/>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="active" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex indexName="idx_source_name" tableName="source_info">
+            <column name="name"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

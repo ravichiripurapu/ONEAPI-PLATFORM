@@ -58,11 +58,11 @@ public class DashboardController {
         return ResponseEntity.ok(dashboardService.findByCreatedBy("admin")); // TODO: get from SecurityContext
     }
 
-    @GetMapping("/catalog/{catalogId}")
-    @Operation(summary = "Get dashboards by catalog")
+    @GetMapping("/source/{sourceId}")
+    @Operation(summary = "Get dashboards by source")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<DashboardDTO>> getByCatalog(@PathVariable Long catalogId) {
-        return ResponseEntity.ok(dashboardService.findByCatalog(catalogId));
+    public ResponseEntity<List<DashboardDTO>> getBySource(@PathVariable Long sourceId) {
+        return ResponseEntity.ok(dashboardService.findBySource(sourceId));
     }
 
     @GetMapping("/public")

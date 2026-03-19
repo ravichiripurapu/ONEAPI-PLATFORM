@@ -13,38 +13,6 @@ import java.util.stream.Collectors;
 @Component
 public class ReportingMapper {
 
-    // ========== Catalog Mappings ==========
-
-    public ReportCatalogDTO toDTO(Catalog entity) {
-        if (entity == null) return null;
-
-        return new ReportCatalogDTO(
-            entity.getId(),
-            entity.getName(),
-            entity.getDescription(),
-            entity.getCreatedBy(),
-            entity.getCreatedDate(),
-            entity.getLastModifiedBy(),
-            entity.getLastModifiedDate()
-        );
-    }
-
-    public Catalog toEntity(ReportCatalogDTO dto) {
-        if (dto == null) return null;
-
-        Catalog entity = new Catalog();
-        entity.setId(dto.getId());
-        entity.setName(dto.getName());
-        entity.setDescription(dto.getDescription());
-        return entity;
-    }
-
-    public void updateEntityFromDTO(ReportCatalogDTO dto, Catalog entity) {
-        if (dto == null || entity == null) return;
-        entity.setName(dto.getName());
-        entity.setDescription(dto.getDescription());
-    }
-
     // ========== SavedQuery Mappings ==========
 
     public SavedQueryDTO toDTO(SavedQuery entity) {
@@ -57,8 +25,6 @@ public class ReportingMapper {
         dto.setQueryText(entity.getQueryText());
         dto.setDatasourceId(entity.getSource() != null ? entity.getSource().getId() : null);
         dto.setConnectionName(entity.getSource() != null ? entity.getSource().getName() : null);
-        dto.setCatalogId(entity.getCatalog() != null ? entity.getCatalog().getId() : null);
-        dto.setCatalogName(entity.getCatalog() != null ? entity.getCatalog().getName() : null);
         dto.setIsPublic(entity.getIsPublic());
         dto.setIsFavorite(entity.getIsFavorite());
         dto.setExecutionCount(entity.getExecutionCount());
@@ -71,7 +37,7 @@ public class ReportingMapper {
         return dto;
     }
 
-    public SavedQuery toEntity(SavedQueryDTO dto, SourceInfo connection, Catalog catalog) {
+    public SavedQuery toEntity(SavedQueryDTO dto, SourceInfo connection) {
         if (dto == null) return null;
 
         SavedQuery entity = new SavedQuery();
@@ -80,19 +46,17 @@ public class ReportingMapper {
         entity.setDescription(dto.getDescription());
         entity.setQueryText(dto.getQueryText());
         entity.setSource(connection);
-        entity.setCatalog(catalog);
         entity.setIsPublic(dto.getIsPublic());
         entity.setIsFavorite(dto.getIsFavorite());
         return entity;
     }
 
-    public void updateEntityFromDTO(SavedQueryDTO dto, SavedQuery entity, SourceInfo connection, Catalog catalog) {
+    public void updateEntityFromDTO(SavedQueryDTO dto, SavedQuery entity, SourceInfo connection) {
         if (dto == null || entity == null) return;
         entity.setName(dto.getName());
         entity.setDescription(dto.getDescription());
         entity.setQueryText(dto.getQueryText());
         entity.setSource(connection);
-        entity.setCatalog(catalog);
         entity.setIsPublic(dto.getIsPublic());
         entity.setIsFavorite(dto.getIsFavorite());
     }
@@ -108,8 +72,8 @@ public class ReportingMapper {
         dto.setDescription(entity.getDescription());
         dto.setQueryId(entity.getQuery() != null ? entity.getQuery().getId() : null);
         dto.setQueryName(entity.getQuery() != null ? entity.getQuery().getName() : null);
-        dto.setCatalogId(entity.getCatalog() != null ? entity.getCatalog().getId() : null);
-        dto.setCatalogName(entity.getCatalog() != null ? entity.getCatalog().getName() : null);
+        dto.setSourceId(entity.getSource() != null ? entity.getSource().getId() : null);
+        dto.setSourceName(entity.getSource() != null ? entity.getSource().getName() : null);
         dto.setOutputFormat(entity.getOutputFormat());
         dto.setParameters(entity.getParameters());
         dto.setDefaultParameters(entity.getDefaultParameters());
@@ -124,7 +88,7 @@ public class ReportingMapper {
         return dto;
     }
 
-    public Report toEntity(ReportDTO dto, SavedQuery query, Catalog catalog) {
+    public Report toEntity(ReportDTO dto, SavedQuery query, SourceInfo source) {
         if (dto == null) return null;
 
         Report entity = new Report();
@@ -132,7 +96,7 @@ public class ReportingMapper {
         entity.setName(dto.getName());
         entity.setDescription(dto.getDescription());
         entity.setQuery(query);
-        entity.setCatalog(catalog);
+        entity.setSource(source);
         entity.setOutputFormat(dto.getOutputFormat());
         entity.setParameters(dto.getParameters());
         entity.setDefaultParameters(dto.getDefaultParameters());
@@ -140,12 +104,12 @@ public class ReportingMapper {
         return entity;
     }
 
-    public void updateEntityFromDTO(ReportDTO dto, Report entity, SavedQuery query, Catalog catalog) {
+    public void updateEntityFromDTO(ReportDTO dto, Report entity, SavedQuery query, SourceInfo source) {
         if (dto == null || entity == null) return;
         entity.setName(dto.getName());
         entity.setDescription(dto.getDescription());
         entity.setQuery(query);
-        entity.setCatalog(catalog);
+        entity.setSource(source);
         entity.setOutputFormat(dto.getOutputFormat());
         entity.setParameters(dto.getParameters());
         entity.setDefaultParameters(dto.getDefaultParameters());
@@ -161,8 +125,8 @@ public class ReportingMapper {
         dto.setId(entity.getId());
         dto.setName(entity.getName());
         dto.setDescription(entity.getDescription());
-        dto.setCatalogId(entity.getCatalog() != null ? entity.getCatalog().getId() : null);
-        dto.setCatalogName(entity.getCatalog() != null ? entity.getCatalog().getName() : null);
+        dto.setSourceId(entity.getSource() != null ? entity.getSource().getId() : null);
+        dto.setSourceName(entity.getSource() != null ? entity.getSource().getName() : null);
         dto.setIsPublic(entity.getIsPublic());
         dto.setRefreshIntervalSeconds(entity.getRefreshIntervalSeconds());
         dto.setLayout(entity.getLayout());
@@ -183,25 +147,25 @@ public class ReportingMapper {
         return dto;
     }
 
-    public Dashboard toEntity(DashboardDTO dto, Catalog catalog) {
+    public Dashboard toEntity(DashboardDTO dto, SourceInfo source) {
         if (dto == null) return null;
 
         Dashboard entity = new Dashboard();
         entity.setId(dto.getId());
         entity.setName(dto.getName());
         entity.setDescription(dto.getDescription());
-        entity.setCatalog(catalog);
+        entity.setSource(source);
         entity.setIsPublic(dto.getIsPublic());
         entity.setRefreshIntervalSeconds(dto.getRefreshIntervalSeconds());
         entity.setLayout(dto.getLayout());
         return entity;
     }
 
-    public void updateEntityFromDTO(DashboardDTO dto, Dashboard entity, Catalog catalog) {
+    public void updateEntityFromDTO(DashboardDTO dto, Dashboard entity, SourceInfo source) {
         if (dto == null || entity == null) return;
         entity.setName(dto.getName());
         entity.setDescription(dto.getDescription());
-        entity.setCatalog(catalog);
+        entity.setSource(source);
         entity.setIsPublic(dto.getIsPublic());
         entity.setRefreshIntervalSeconds(dto.getRefreshIntervalSeconds());
         entity.setLayout(dto.getLayout());
@@ -358,10 +322,6 @@ public class ReportingMapper {
     // AuditLog is read-only, no toEntity method needed
 
     // ========== List Conversions ==========
-
-    public List<ReportCatalogDTO> catalogsToDTOs(List<Catalog> entities) {
-        return entities.stream().map(this::toDTO).collect(Collectors.toList());
-    }
 
     public List<SavedQueryDTO> queriesToDTOs(List<SavedQuery> entities) {
         return entities.stream().map(this::toDTO).collect(Collectors.toList());

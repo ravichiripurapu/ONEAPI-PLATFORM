@@ -34,9 +34,6 @@ public class SavedQueryDTO {
 
     private String connectionName; // For display purposes
 
-    private Long catalogId;
-    private String catalogName; // For display purposes
-
     private Boolean isPublic = false;
     private Boolean isFavorite = false;
 

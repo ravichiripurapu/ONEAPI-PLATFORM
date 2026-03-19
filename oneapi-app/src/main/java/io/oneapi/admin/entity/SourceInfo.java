@@ -42,8 +42,7 @@ public class SourceInfo {
 
     private String password;
 
-    @Lob
-    @Column
+    @Column(length = 2000)
     private String additionalParams;
 
     @Column(nullable = false)

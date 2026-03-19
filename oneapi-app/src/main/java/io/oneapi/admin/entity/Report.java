@@ -30,28 +30,25 @@ public class Report {
     @Column(nullable = false)
     private String name;
 
-    @Lob
-    @Column
+    @Column(length = 2000)
     private String description;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "source_id", nullable = false)
+    private SourceInfo source;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "query_id", nullable = false)
     private SavedQuery query;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "catalog_id")
-    private Catalog catalog;
-
     @Column(name = "output_format", nullable = false)
     @Enumerated(EnumType.STRING)
     private OutputFormat outputFormat = OutputFormat.JSON;
 
-    @Lob
-    @Column
+    @Column(length = 5000)
     private String parameters;
 
-    @Lob
-    @Column(name = "default_parameters")
+    @Column(name = "default_parameters", length = 5000)
     private String defaultParameters;
 
     @Column(nullable = false)

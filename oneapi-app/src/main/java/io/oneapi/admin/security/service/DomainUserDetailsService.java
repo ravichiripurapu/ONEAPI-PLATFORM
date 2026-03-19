@@ -1,6 +1,5 @@
 package io.oneapi.admin.security.security;
 
-import io.oneapi.admin.security.domain.Authority;
 import io.oneapi.admin.security.domain.User;
 import io.oneapi.admin.security.repository.UserRepository;
 import java.util.*;
@@ -36,14 +35,14 @@ public class DomainUserDetailsService implements UserDetailsService {
 
         if (new EmailValidator().isValid(login, null)) {
             return userRepository
-                .findOneWithAuthoritiesByEmailIgnoreCase(login)
+                .findOneWithRolesByEmailIgnoreCase(login)
                 .map(user -> createSpringSecurityUser(login, user))
                 .orElseThrow(() -> new UsernameNotFoundException("User with email " + login + " was not found in the database"));
         }
 
         String lowercaseLogin = login.toLowerCase(Locale.ENGLISH);
         return userRepository
-            .findOneWithAuthoritiesByLogin(lowercaseLogin)
+            .findOneWithRolesByLogin(lowercaseLogin)
             .map(user -> createSpringSecurityUser(lowercaseLogin, user))
             .orElseThrow(() -> new UsernameNotFoundException("User " + lowercaseLogin + " was not found in the database"));
     }
@@ -82,7 +81,11 @@ public class DomainUserDetailsService implements UserDetailsService {
             return new UserWithId(
                 user.getLogin(),
                 user.getPasswordHash(),
-                user.getAuthorities().stream().map(Authority::getName).map(SimpleGrantedAuthority::new).toList(),
+                user.getUserRoles().stream()
+                    .map(userRole -> userRole.getRole().getName())
+                    .map(roleName -> "ROLE_" + roleName)
+                    .map(SimpleGrantedAuthority::new)
+                    .toList(),
                 user.getId()
             );
         }

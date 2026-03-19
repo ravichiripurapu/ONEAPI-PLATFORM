@@ -32,13 +32,12 @@ public class Dashboard {
     @Column(nullable = false)
     private String name;
 
-    @Lob
-    @Column
+    @Column(length = 2000)
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "catalog_id")
-    private Catalog catalog;
+    @JoinColumn(name = "source_id", nullable = false)
+    private SourceInfo source;
 
     @Column(nullable = false)
     private Boolean isPublic = false;
@@ -46,8 +45,7 @@ public class Dashboard {
     @Column(name = "refresh_interval_seconds")
     private Integer refreshIntervalSeconds;
 
-    @Lob
-    @Column
+    @Column(length = 5000)
     private String layout;
 
     @OneToMany(mappedBy = "dashboard", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -27,8 +27,8 @@ public class DashboardDTO {
     @Size(max = 5000, message = "Description must not exceed 5000 characters")
     private String description;
 
-    private Long catalogId;
-    private String catalogName; // For display purposes
+    private Long sourceId;
+    private String sourceName; // For display purposes
 
     private Boolean isPublic = false;
 

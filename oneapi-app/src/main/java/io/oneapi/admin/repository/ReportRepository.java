@@ -19,7 +19,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 
     List<Report> findByQueryId(Long queryId);
 
-    List<Report> findByCatalogId(Long catalogId);
+    List<Report> findBySourceId(Long sourceId);
 
     List<Report> findByIsPublicTrue();
 

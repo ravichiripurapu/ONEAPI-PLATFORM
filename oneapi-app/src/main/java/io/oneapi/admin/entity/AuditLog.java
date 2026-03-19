@@ -41,15 +41,13 @@ public class AuditLog {
     @Column(name = "entity_name")
     private String entityName;
 
-    @Lob
-    @Column
+    @Column(length = 5000)
     private String details;
 
     @Column(name = "ip_address", length = 45)
     private String ipAddress;
 
-    @Lob
-    @Column(name = "user_agent")
+    @Column(name = "user_agent", length = 500)
     private String userAgent;
 
     @Column(nullable = false)
@@ -62,8 +60,7 @@ public class AuditLog {
     @Enumerated(EnumType.STRING)
     private Status status;
 
-    @Lob
-    @Column(name = "error_message")
+    @Column(name = "error_message", length = 2000)
     private String errorMessage;
 
     public enum Action {

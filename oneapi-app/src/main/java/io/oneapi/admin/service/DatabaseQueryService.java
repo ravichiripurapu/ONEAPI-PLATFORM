@@ -9,7 +9,6 @@ import io.oneapi.admin.model.QueryResponse;
 import io.oneapi.admin.model.QuerySession;
 import io.oneapi.admin.repository.SourceInfoRepository;
 import io.oneapi.sdk.base.Source;
-import io.oneapi.admin.entity.Catalog;
 import io.oneapi.sdk.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -65,11 +65,11 @@ public class ReportController {
         return ResponseEntity.ok(reportService.findByQuery(queryId));
     }
 
-    @GetMapping("/catalog/{catalogId}")
-    @Operation(summary = "Get reports by catalog")
+    @GetMapping("/source/{sourceId}")
+    @Operation(summary = "Get reports by source")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<ReportDTO>> getByCatalog(@PathVariable Long catalogId) {
-        return ResponseEntity.ok(reportService.findByCatalog(catalogId));
+    public ResponseEntity<List<ReportDTO>> getBySource(@PathVariable Long sourceId) {
+        return ResponseEntity.ok(reportService.findBySource(sourceId));
     }
 
     @GetMapping("/public")

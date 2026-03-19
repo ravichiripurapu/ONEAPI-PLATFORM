@@ -1,0 +1,751 @@
+{
+	"info": {
+		"_postman_id": "oneapi-platform-2026",
+		"name": "OneAPI Platform - Complete API Collection",
+		"description": "Comprehensive API collection for OneAPI Platform running on port 8088",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{jwt_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8088",
+			"type": "string"
+		},
+		{
+			"key": "jwt_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "datasource_id",
+			"value": "1",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login (Get JWT Token)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.id_token) {",
+									"    pm.collectionVariables.set('jwt_token', jsonData.id_token);",
+									"    console.log('JWT Token saved:', jsonData.id_token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/authenticate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"authenticate"
+							]
+						},
+						"description": "Authenticate and receive JWT token"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Data Sources",
+			"item": [
+				{
+					"name": "Create H2 Datasource",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.id) {",
+									"    pm.collectionVariables.set('datasource_id', jsonData.id);",
+									"    console.log('Datasource ID saved:', jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"H2 Test Database\",\n  \"description\": \"H2 in-memory database for testing\",\n  \"databaseType\": \"H2\",\n  \"host\": \"localhost\",\n  \"port\": 9092,\n  \"databaseName\": \"testdb\",\n  \"username\": \"sa\",\n  \"password\": \"\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/datasources",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"datasources"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List All Datasources",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/datasources",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"datasources"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Datasource by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/datasources/{{datasource_id}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"datasources",
+								"{{datasource_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Datasource",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated H2 Database\",\n  \"description\": \"Updated description\",\n  \"databaseType\": \"H2\",\n  \"host\": \"localhost\",\n  \"port\": 9092,\n  \"databaseName\": \"testdb\",\n  \"username\": \"sa\",\n  \"password\": \"\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/datasources/{{datasource_id}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"datasources",
+								"{{datasource_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Test Connection",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/datasources/{{datasource_id}}/test",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"datasources",
+								"{{datasource_id}}",
+								"test"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Datasource",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/datasources/{{datasource_id}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"datasources",
+								"{{datasource_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Metadata Discovery",
+			"item": [
+				{
+					"name": "Discover Metadata",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/metadata/discover/{{datasource_id}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"metadata",
+								"discover",
+								"{{datasource_id}}"
+							]
+						},
+						"description": "Discover all schemas, tables, and columns from the datasource"
+					},
+					"response": []
+				},
+				{
+					"name": "Sync Metadata (Re-discover)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/metadata/sync/{{datasource_id}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"metadata",
+								"sync",
+								"{{datasource_id}}"
+							]
+						},
+						"description": "Re-discover metadata and detect changes"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Domains (Schemas)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/metadata/domains?sourceId={{datasource_id}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"metadata",
+								"domains"
+							],
+							"query": [
+								{
+									"key": "sourceId",
+									"value": "{{datasource_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Entities (Tables)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/metadata/entities?domainId=1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"metadata",
+								"entities"
+							],
+							"query": [
+								{
+									"key": "domainId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Fields (Columns)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/metadata/fields?entityId=1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"metadata",
+								"fields"
+							],
+							"query": [
+								{
+									"key": "entityId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Query Execution",
+			"item": [
+				{
+					"name": "Execute SQL Query",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"datasourceId\": {{datasource_id}},\n  \"sqlQuery\": \"SELECT * FROM EMPLOYEES LIMIT 10\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/query",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"query"
+							]
+						},
+						"description": "Execute a SQL query and get paginated results"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Next Page (Session-based)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sessionKey\": \"your-session-key-from-previous-response\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/query",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"query"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Saved Queries",
+			"item": [
+				{
+					"name": "Create Saved Query",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Employee List Query\",\n  \"description\": \"Lists all employees\",\n  \"datasourceId\": {{datasource_id}},\n  \"queryText\": \"SELECT * FROM EMPLOYEES\",\n  \"isPublic\": false,\n  \"isFavorite\": false\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/queries",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"queries"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List All Saved Queries",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/queries",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"queries"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Execute Saved Query",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/queries/1/execute",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"queries",
+								"1",
+								"execute"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Queries",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/queries/my",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"queries",
+								"my"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Public Queries",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/queries/public",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"queries",
+								"public"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Dashboards",
+			"item": [
+				{
+					"name": "Create Dashboard",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"HR Dashboard\",\n  \"description\": \"Human Resources analytics\",\n  \"sourceId\": {{datasource_id}},\n  \"layout\": \"{}\",\n  \"isPublic\": false\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/dashboards",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"dashboards"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List All Dashboards",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/dashboards",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"dashboards"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Dashboard by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/dashboards/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"dashboards",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Dashboards",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/dashboards/my",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"dashboards",
+								"my"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Reports",
+			"item": [
+				{
+					"name": "Create Report",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Monthly Report\",\n  \"description\": \"Monthly employee report\",\n  \"queryId\": 1,\n  \"sourceId\": {{datasource_id}},\n  \"outputFormat\": \"JSON\",\n  \"isPublic\": false\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/reports",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"reports"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List All Reports",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/reports",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"reports"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Report by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/reports/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"reports",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Swagger & GraphQL",
+			"item": [
+				{
+					"name": "Swagger UI",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/swagger-ui.html",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"swagger-ui.html"
+							]
+						},
+						"description": "Open Swagger UI in browser"
+					},
+					"response": []
+				},
+				{
+					"name": "GraphiQL UI",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/graphiql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphiql"
+							]
+						},
+						"description": "Open GraphiQL IDE in browser"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

@@ -35,7 +35,6 @@ public class MetadataMapper {
         dto.setDiscoveredAt(entity.getDiscoveredAt());
         dto.setLastSyncedAt(entity.getLastSyncedAt());
         dto.setCreatedDate(entity.getCreatedDate());
-        dto.setSdkCatalogJson(entity.getSdkDomainJson());
 
         return dto;
     }
@@ -69,7 +68,6 @@ public class MetadataMapper {
         dto.setDiscoveredAt(entity.getDiscoveredAt());
         dto.setLastSyncedAt(entity.getLastSyncedAt());
         dto.setCreatedDate(entity.getCreatedDate());
-        dto.setSdkEntityJson(entity.getSdkEntityJson());
 
         return dto;
     }
@@ -112,7 +110,6 @@ public class MetadataMapper {
         dto.setOrdinalPosition(entity.getOrdinalPosition());
         dto.setDiscoveredAt(entity.getDiscoveredAt());
         dto.setCreatedDate(entity.getCreatedDate());
-        dto.setJsonSchemaFragment(entity.getJsonSchemaFragment());
 
         return dto;
     }

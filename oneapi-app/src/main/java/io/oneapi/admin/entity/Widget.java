@@ -30,8 +30,7 @@ public class Widget {
     @Column(nullable = false)
     private String name;
 
-    @Lob
-    @Column
+    @Column(length = 2000)
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -62,8 +61,7 @@ public class Widget {
     @Column(name = "height")
     private Integer height;
 
-    @Lob
-    @Column
+    @Column(length = 5000)
     private String configuration;
 
     @Column(name = "refresh_interval_seconds")

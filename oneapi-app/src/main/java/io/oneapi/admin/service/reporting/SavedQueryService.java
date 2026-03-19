@@ -1,11 +1,9 @@
 package io.oneapi.admin.service.reporting;
 
 import io.oneapi.admin.dto.reporting.SavedQueryDTO;
-import io.oneapi.admin.entity.Catalog;
 import io.oneapi.admin.entity.SourceInfo;
 import io.oneapi.admin.entity.SavedQuery;
 import io.oneapi.admin.mapper.ReportingMapper;
-import io.oneapi.admin.repository.CatalogRepository;
 import io.oneapi.admin.repository.SourceInfoRepository;
 import io.oneapi.admin.repository.SavedQueryRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +26,6 @@ public class SavedQueryService {
 
     private final SavedQueryRepository savedQueryRepository;
     private final SourceInfoRepository connectionRepository;
-    private final CatalogRepository catalogRepository;
     private final ReportingMapper mapper;
     private final io.oneapi.admin.service.DatabaseQueryService databaseQueryService;
 
@@ -41,13 +38,7 @@ public class SavedQueryService {
         SourceInfo connection = connectionRepository.findById(dto.getDatasourceId())
             .orElseThrow(() -> new IllegalArgumentException("Connection not found with ID: " + dto.getDatasourceId()));
 
-        Catalog catalog = null;
-        if (dto.getCatalogId() != null) {
-            catalog = catalogRepository.findById(dto.getCatalogId())
-                .orElseThrow(() -> new IllegalArgumentException("Catalog not found with ID: " + dto.getCatalogId()));
-        }
-
-        SavedQuery entity = mapper.toEntity(dto, connection, catalog);
+        SavedQuery entity = mapper.toEntity(dto, connection);
         SavedQuery saved = savedQueryRepository.save(entity);
         log.info("Created saved query with ID: {}", saved.getId());
 
@@ -66,13 +57,7 @@ public class SavedQueryService {
         SourceInfo connection = connectionRepository.findById(dto.getDatasourceId())
             .orElseThrow(() -> new IllegalArgumentException("Connection not found with ID: " + dto.getDatasourceId()));
 
-        Catalog catalog = null;
-        if (dto.getCatalogId() != null) {
-            catalog = catalogRepository.findById(dto.getCatalogId())
-                .orElseThrow(() -> new IllegalArgumentException("Catalog not found with ID: " + dto.getCatalogId()));
-        }
-
-        mapper.updateEntityFromDTO(dto, entity, connection, catalog);
+        mapper.updateEntityFromDTO(dto, entity, connection);
         SavedQuery updated = savedQueryRepository.save(entity);
         log.info("Updated saved query ID: {}", id);
 
@@ -116,12 +101,12 @@ public class SavedQueryService {
     }
 
     /**
-     * Get queries by catalog.
+     * Get queries by source (deprecated catalog).
      */
     @Transactional(readOnly = true)
-    public List<SavedQueryDTO> findByCatalog(Long catalogId) {
-        log.debug("Finding saved queries for catalog: {}", catalogId);
-        return mapper.queriesToDTOs(savedQueryRepository.findByCatalogId(catalogId));
+    public List<SavedQueryDTO> findBySource(Long sourceId) {
+        log.debug("Finding saved queries for source: {}", sourceId);
+        return mapper.queriesToDTOs(savedQueryRepository.findBySourceId(sourceId));
     }
 
     /**

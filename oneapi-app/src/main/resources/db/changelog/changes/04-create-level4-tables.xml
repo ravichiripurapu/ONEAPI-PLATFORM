@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Level 4: Tables with foreign keys to Level 3 -->
+
+    <!-- Create field_info table -->
+    <changeSet id="04-create-field-info" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="field_info"/>
+            </not>
+        </preConditions>
+        <createTable tableName="field_info">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="entity_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="column_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="data_type" type="VARCHAR(255)"/>
+            <column name="jdbc_type" type="VARCHAR(255)"/>
+            <column name="column_size" type="INT"/>
+            <column name="decimal_digits" type="INT"/>
+            <column name="nullable" type="BOOLEAN"/>
+            <column name="default_value" type="VARCHAR(255)"/>
+            <column name="column_comment" type="VARCHAR(1000)"/>
+            <column name="is_primary_key" type="BOOLEAN"/>
+            <column name="is_foreign_key" type="BOOLEAN"/>
+            <column name="is_unique" type="BOOLEAN"/>
+            <column name="is_indexed" type="BOOLEAN"/>
+            <column name="is_auto_increment" type="BOOLEAN"/>
+            <column name="ordinal_position" type="INT"/>
+            <column name="discovered_at" type="TIMESTAMP"/>
+            <column name="created_date" type="TIMESTAMP"/>
+        </createTable>
+        <createIndex indexName="idx_field_data_entity" tableName="field_info">
+            <column name="entity_id"/>
+        </createIndex>
+        <createIndex indexName="idx_field_name" tableName="field_info">
+            <column name="column_name"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Add foreign key for field_info -> entity_info -->
+    <changeSet id="04-add-fk-field-entity" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_field_entity"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint
+            baseTableName="field_info"
+            baseColumnNames="entity_id"
+            constraintName="fk_field_entity"
+            referencedTableName="entity_info"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+    </changeSet>
+
+    <!-- Create report table -->
+    <changeSet id="04-create-report" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="report"/>
+            </not>
+        </preConditions>
+        <createTable tableName="report">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(2000)"/>
+            <column name="source_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="query_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="output_format" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="parameters" type="VARCHAR(5000)"/>
+            <column name="default_parameters" type="VARCHAR(5000)"/>
+            <column name="is_public" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="execution_count" type="BIGINT"/>
+            <column name="last_executed_at" type="TIMESTAMP"/>
+            <column name="avg_execution_time_ms" type="BIGINT"/>
+            <column name="created_by" type="VARCHAR(50)"/>
+            <column name="created_date" type="TIMESTAMP"/>
+            <column name="last_modified_by" type="VARCHAR(50)"/>
+            <column name="last_modified_date" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Add foreign keys for report -->
+    <changeSet id="04-add-fk-report-source" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_report_source"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint
+            baseTableName="report"
+            baseColumnNames="source_id"
+            constraintName="fk_report_source"
+            referencedTableName="source_info"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="04-add-fk-report-query" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_report_query"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint
+            baseTableName="report"
+            baseColumnNames="query_id"
+            constraintName="fk_report_query"
+            referencedTableName="saved_query"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+    </changeSet>
+
+    <!-- Create widget table -->
+    <changeSet id="04-create-widget" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="widget"/>
+            </not>
+        </preConditions>
+        <createTable tableName="widget">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(2000)"/>
+            <column name="dashboard_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="query_id" type="BIGINT"/>
+            <column name="report_id" type="BIGINT"/>
+            <column name="widget_type" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="position_x" type="INT"/>
+            <column name="position_y" type="INT"/>
+            <column name="width" type="INT"/>
+            <column name="height" type="INT"/>
+            <column name="configuration" type="VARCHAR(5000)"/>
+            <column name="refresh_interval_seconds" type="INT"/>
+            <column name="created_by" type="VARCHAR(50)"/>
+            <column name="created_date" type="TIMESTAMP"/>
+            <column name="last_modified_by" type="VARCHAR(50)"/>
+            <column name="last_modified_date" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Add foreign keys for widget -->
+    <changeSet id="04-add-fk-widget-dashboard" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_widget_dashboard"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint
+            baseTableName="widget"
+            baseColumnNames="dashboard_id"
+            constraintName="fk_widget_dashboard"
+            referencedTableName="dashboard"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="04-add-fk-widget-query" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_widget_query"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint
+            baseTableName="widget"
+            baseColumnNames="query_id"
+            constraintName="fk_widget_query"
+            referencedTableName="saved_query"
+            referencedColumnNames="id"
+            onDelete="SET NULL"/>
+    </changeSet>
+
+    <changeSet id="04-add-fk-widget-report" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_widget_report"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint
+            baseTableName="widget"
+            baseColumnNames="report_id"
+            constraintName="fk_widget_report"
+            referencedTableName="report"
+            referencedColumnNames="id"
+            onDelete="SET NULL"/>
+    </changeSet>
+
+    <!-- Create schedule table -->
+    <changeSet id="04-create-schedule" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="schedule"/>
+            </not>
+        </preConditions>
+        <createTable tableName="schedule">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(2000)"/>
+            <column name="report_id" type="BIGINT"/>
+            <column name="query_id" type="BIGINT"/>
+            <column name="cron_expression" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="enabled" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="output_format" type="VARCHAR(50)"/>
+            <column name="email_recipients" type="VARCHAR(2000)"/>
+            <column name="webhook_url" type="VARCHAR(255)"/>
+            <column name="last_run_at" type="TIMESTAMP"/>
+            <column name="last_run_status" type="VARCHAR(50)"/>
+            <column name="last_run_message" type="VARCHAR(2000)"/>
+            <column name="next_run_at" type="TIMESTAMP"/>
+            <column name="execution_count" type="BIGINT"/>
+            <column name="success_count" type="BIGINT"/>
+            <column name="failure_count" type="BIGINT"/>
+            <column name="created_by" type="VARCHAR(50)"/>
+            <column name="created_date" type="TIMESTAMP"/>
+            <column name="last_modified_by" type="VARCHAR(50)"/>
+            <column name="last_modified_date" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Add foreign keys for schedule -->
+    <changeSet id="04-add-fk-schedule-report" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_schedule_report"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint
+            baseTableName="schedule"
+            baseColumnNames="report_id"
+            constraintName="fk_schedule_report"
+            referencedTableName="report"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="04-add-fk-schedule-query" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_schedule_query"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint
+            baseTableName="schedule"
+            baseColumnNames="query_id"
+            constraintName="fk_schedule_query"
+            referencedTableName="saved_query"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+    </changeSet>
+
+</databaseChangeLog>

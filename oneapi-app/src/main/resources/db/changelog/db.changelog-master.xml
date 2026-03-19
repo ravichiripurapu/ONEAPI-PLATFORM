@@ -1,42 +1,24 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <databaseChangeLog
-        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
+    <!-- OneAPI Platform Database Changelog Master File -->
     <!--
-        OneAPI Platform - Database Changelog Master
-        Baseline v1.0 - Production-ready schema (no sample tables)
-
-        Note: Sample tables have been removed from production schema.
-        For testing, use external test databases (e.g., HR database).
+        Migration Structure:
+        - Level 1: Base tables with NO foreign keys (User, SourceInfo)
+        - Level 2: First-level dependencies (Role, DomainInfo)
+        - Level 3: Second-level dependencies (EntityInfo, SavedQuery, Dashboard, UserPreferences)
+        - Level 4: Third-level dependencies (FieldInfo, Report, Widget, Schedule)
+        - Level 5: Join tables and audit (UserRole, Permission, AuditLog)
     -->
 
-    <!-- Security Schema (Users, Roles, Permissions) -->
-    <include file="db/changelog/changes/02-baseline-security-schema.xml"/>
-
-    <!-- Datasources (renamed from Database Connections) -->
-    <include file="db/changelog/changes/03-baseline-datasources.xml"/>
-
-    <!-- Reporting Schema (Catalogs, Queries, Reports, Dashboards, Schedules) -->
-    <include file="db/changelog/changes/04-baseline-reporting-schema.xml"/>
-
-    <!-- Metadata Discovery Schema (Schemas, Tables, Columns) -->
-    <include file="db/changelog/changes/05-baseline-metadata-schema.xml"/>
-
-    <!-- Test Data (admin, john, jane users) -->
-    <include file="db/changelog/changes/06-baseline-test-data.xml"/>
-
-    <!-- Cleanup: Remove dead code tables and rename user_query_preferences -->
-    <include file="db/changelog/changes/07-cleanup-dead-code-entities.xml"/>
-
-    <!-- SDK Alignment: Rename entities to match SDK terminology (Source → Domain → DataEntity → Field) -->
-    <include file="db/changelog/changes/08-rename-entities-for-sdk-alignment.xml"/>
-
-    <!-- RBAC Security: Role-based access control for hierarchical permissions -->
-    <include file="db/changelog/changes/09-create-role-table.xml"/>
-    <include file="db/changelog/changes/10-create-permission-table.xml"/>
-    <include file="db/changelog/changes/11-create-default-admin-role.xml"/>
+    <include file="changes/01-create-level1-base-tables.xml" relativeToChangelogFile="true"/>
+    <include file="changes/02-create-level2-tables.xml" relativeToChangelogFile="true"/>
+    <include file="changes/03-create-level3-tables.xml" relativeToChangelogFile="true"/>
+    <include file="changes/04-create-level4-tables.xml" relativeToChangelogFile="true"/>
+    <include file="changes/05-create-level5-tables.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

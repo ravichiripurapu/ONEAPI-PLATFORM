@@ -19,8 +19,6 @@ public interface SavedQueryRepository extends JpaRepository<SavedQuery, Long> {
 
     List<SavedQuery> findBySourceId(Long sourceId);
 
-    List<SavedQuery> findByCatalogId(Long catalogId);
-
     List<SavedQuery> findByIsPublicTrue();
 
     List<SavedQuery> findByIsFavoriteTrueAndCreatedBy(String createdBy);

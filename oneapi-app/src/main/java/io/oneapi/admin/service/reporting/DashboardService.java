@@ -1,11 +1,11 @@
 package io.oneapi.admin.service.reporting;
 
 import io.oneapi.admin.dto.reporting.DashboardDTO;
-import io.oneapi.admin.entity.Catalog;
 import io.oneapi.admin.entity.Dashboard;
+import io.oneapi.admin.entity.SourceInfo;
 import io.oneapi.admin.mapper.ReportingMapper;
-import io.oneapi.admin.repository.CatalogRepository;
 import io.oneapi.admin.repository.DashboardRepository;
+import io.oneapi.admin.repository.SourceInfoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,19 +25,19 @@ import java.util.Optional;
 public class DashboardService {
 
     private final DashboardRepository dashboardRepository;
-    private final CatalogRepository catalogRepository;
+    private final SourceInfoRepository sourceInfoRepository;
     private final ReportingMapper mapper;
 
     public DashboardDTO create(DashboardDTO dto) {
         log.debug("Creating new dashboard: {}", dto.getName());
 
-        Catalog catalog = null;
-        if (dto.getCatalogId() != null) {
-            catalog = catalogRepository.findById(dto.getCatalogId())
-                .orElseThrow(() -> new IllegalArgumentException("Catalog not found with ID: " + dto.getCatalogId()));
+        SourceInfo source = null;
+        if (dto.getSourceId() != null) {
+            source = sourceInfoRepository.findById(dto.getSourceId())
+                .orElseThrow(() -> new IllegalArgumentException("Source not found with ID: " + dto.getSourceId()));
         }
 
-        Dashboard entity = mapper.toEntity(dto, catalog);
+        Dashboard entity = mapper.toEntity(dto, source);
         Dashboard saved = dashboardRepository.save(entity);
         log.info("Created dashboard with ID: {}", saved.getId());
 
@@ -50,13 +50,13 @@ public class DashboardService {
         Dashboard entity = dashboardRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Dashboard not found with ID: " + id));
 
-        Catalog catalog = null;
-        if (dto.getCatalogId() != null) {
-            catalog = catalogRepository.findById(dto.getCatalogId())
-                .orElseThrow(() -> new IllegalArgumentException("Catalog not found with ID: " + dto.getCatalogId()));
+        SourceInfo source = null;
+        if (dto.getSourceId() != null) {
+            source = sourceInfoRepository.findById(dto.getSourceId())
+                .orElseThrow(() -> new IllegalArgumentException("Source not found with ID: " + dto.getSourceId()));
         }
 
-        mapper.updateEntityFromDTO(dto, entity, catalog);
+        mapper.updateEntityFromDTO(dto, entity, source);
         Dashboard updated = dashboardRepository.save(entity);
         log.info("Updated dashboard ID: {}", id);
 
@@ -82,9 +82,9 @@ public class DashboardService {
     }
 
     @Transactional(readOnly = true)
-    public List<DashboardDTO> findByCatalog(Long catalogId) {
-        log.debug("Finding dashboards for catalog: {}", catalogId);
-        return mapper.dashboardsToDTOs(dashboardRepository.findByCatalogId(catalogId));
+    public List<DashboardDTO> findBySource(Long sourceId) {
+        log.debug("Finding dashboards for source: {}", sourceId);
+        return mapper.dashboardsToDTOs(dashboardRepository.findBySourceId(sourceId));
     }
 
     @Transactional(readOnly = true)

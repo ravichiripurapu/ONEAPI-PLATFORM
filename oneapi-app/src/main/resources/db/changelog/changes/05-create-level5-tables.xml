@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Level 5: Join tables and audit tables -->
+
+    <!-- Create user_role table (join table between user and role) -->
+    <changeSet id="05-create-user-role" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="user_role"/>
+            </not>
+        </preConditions>
+        <createTable tableName="user_role">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="assigned_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="assigned_by" type="VARCHAR(100)"/>
+        </createTable>
+        <!-- Unique constraint to prevent duplicate user-role assignments -->
+        <addUniqueConstraint
+            tableName="user_role"
+            columnNames="user_id, role_id"
+            constraintName="uk_user_role"/>
+    </changeSet>
+
+    <!-- Add foreign keys for user_role -->
+    <changeSet id="05-add-fk-userrole-user" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_userrole_user"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint
+            baseTableName="user_role"
+            baseColumnNames="user_id"
+            constraintName="fk_userrole_user"
+            referencedTableName="app_user"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="05-add-fk-userrole-role" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_userrole_role"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint
+            baseTableName="user_role"
+            baseColumnNames="role_id"
+            constraintName="fk_userrole_role"
+            referencedTableName="role"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+    </changeSet>
+
+    <!-- Create permission table (hierarchical RBAC) -->
+    <changeSet id="05-create-permission" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="permission"/>
+            </not>
+        </preConditions>
+        <createTable tableName="permission">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="role_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="source_id" type="BIGINT"/>
+            <column name="domain_id" type="BIGINT"/>
+            <column name="entity_id" type="BIGINT"/>
+            <column name="field_id" type="BIGINT"/>
+            <column name="permission_type" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by" type="VARCHAR(100)"/>
+        </createTable>
+        <createIndex indexName="idx_permission_role_source" tableName="permission">
+            <column name="role_id"/>
+            <column name="source_id"/>
+        </createIndex>
+        <createIndex indexName="idx_permission_role_domain" tableName="permission">
+            <column name="role_id"/>
+            <column name="domain_id"/>
+        </createIndex>
+        <createIndex indexName="idx_permission_role_entity" tableName="permission">
+            <column name="role_id"/>
+            <column name="entity_id"/>
+        </createIndex>
+        <createIndex indexName="idx_permission_role_field" tableName="permission">
+            <column name="role_id"/>
+            <column name="field_id"/>
+        </createIndex>
+        <createIndex indexName="idx_permission_hierarchy" tableName="permission">
+            <column name="role_id"/>
+            <column name="source_id"/>
+            <column name="domain_id"/>
+            <column name="entity_id"/>
+            <column name="field_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Add foreign keys for permission -->
+    <changeSet id="05-add-fk-permission-role" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_permission_role"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint
+            baseTableName="permission"
+            baseColumnNames="role_id"
+            constraintName="fk_permission_role"
+            referencedTableName="role"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="05-add-fk-permission-source" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_permission_source"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint
+            baseTableName="permission"
+            baseColumnNames="source_id"
+            constraintName="fk_permission_source"
+            referencedTableName="source_info"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="05-add-fk-permission-domain" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_permission_domain"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint
+            baseTableName="permission"
+            baseColumnNames="domain_id"
+            constraintName="fk_permission_domain"
+            referencedTableName="domain_info"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="05-add-fk-permission-entity" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_permission_entity"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint
+            baseTableName="permission"
+            baseColumnNames="entity_id"
+            constraintName="fk_permission_entity"
+            referencedTableName="entity_info"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="05-add-fk-permission-field" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_permission_field"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint
+            baseTableName="permission"
+            baseColumnNames="field_id"
+            constraintName="fk_permission_field"
+            referencedTableName="field_info"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+    </changeSet>
+
+    <!-- Create audit_log table -->
+    <changeSet id="05-create-audit-log" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="audit_log"/>
+            </not>
+        </preConditions>
+        <createTable tableName="audit_log">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_login" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="action" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="entity_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="entity_id" type="BIGINT"/>
+            <column name="entity_name" type="VARCHAR(255)"/>
+            <column name="details" type="VARCHAR(5000)"/>
+            <column name="ip_address" type="VARCHAR(45)"/>
+            <column name="user_agent" type="VARCHAR(500)"/>
+            <column name="timestamp" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="execution_time_ms" type="BIGINT"/>
+            <column name="status" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="error_message" type="VARCHAR(2000)"/>
+        </createTable>
+        <createIndex indexName="idx_audit_user_action" tableName="audit_log">
+            <column name="user_login"/>
+            <column name="action"/>
+        </createIndex>
+        <createIndex indexName="idx_audit_timestamp" tableName="audit_log">
+            <column name="timestamp"/>
+        </createIndex>
+        <createIndex indexName="idx_audit_entity" tableName="audit_log">
+            <column name="entity_type"/>
+            <column name="entity_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

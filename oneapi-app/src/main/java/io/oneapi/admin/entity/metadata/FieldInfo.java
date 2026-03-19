@@ -53,8 +53,7 @@ public class FieldInfo {
     @Column(name = "default_value")
     private String defaultValue;
 
-    @Lob
-    @Column(name = "column_comment")
+    @Column(name = "column_comment", length = 1000)
     private String columnComment;
 
     @Column(name = "is_primary_key")
@@ -77,13 +76,6 @@ public class FieldInfo {
 
     @Column(name = "discovered_at")
     private LocalDateTime discoveredAt;
-
-    /**
-     * Store the original JSON schema fragment from SDK
-     */
-    @Lob
-    @Column(name = "json_schema_fragment")
-    private String jsonSchemaFragment;
 
     @Column(name = "created_date")
     private LocalDateTime createdDate;

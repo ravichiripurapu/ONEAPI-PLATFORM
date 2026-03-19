@@ -45,7 +45,7 @@ spring:
         token-validity-in-seconds-for-remember-me: 604800
 
 server:
-  port: 8080
+  port: 8088
   # Session timeout for query sessions (30 minutes)
   servlet:
     session:

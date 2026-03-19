@@ -116,8 +116,7 @@ public class MetadataDiscoveryService {
                 log.debug("Discovered new schema: {}", schemaName);
             }
 
-            // Store SDK catalog JSON for full fidelity
-            domain.setSdkDomainJson(objectMapper.writeValueAsString(tables));
+            // Note: SDK domain JSON storage removed to simplify schema
 
             domain = domainRepository.save(domain);
             schemaCount++;
@@ -155,8 +154,7 @@ public class MetadataDiscoveryService {
             log.debug("Discovered new table: {}.{}", domain.getSchemaName(), entity.getName());
         }
 
-        // Store original SDK DataEntity JSON
-        table.setSdkEntityJson(objectMapper.writeValueAsString(entity));
+        // Note: SDK entity JSON storage removed to simplify schema
 
         return entityRepository.save(table);
     }

@@ -32,8 +32,8 @@ public class ReportDTO {
 
     private String queryName; // For display purposes
 
-    private Long catalogId;
-    private String catalogName; // For display purposes
+    private Long sourceId;
+    private String sourceName; // For display purposes
 
     @NotNull(message = "Output format is required")
     private Report.OutputFormat outputFormat = Report.OutputFormat.JSON;

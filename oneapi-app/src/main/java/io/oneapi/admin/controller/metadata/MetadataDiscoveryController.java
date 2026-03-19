@@ -45,7 +45,7 @@ public class MetadataDiscoveryController {
     // ========== Discovery Operations ==========
 
     @PostMapping("/discover/{sourceId}")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Discover metadata for a database connection",
             description = "Triggers metadata discovery using OneAPI SDK connectors. " +
                     "Discovers schemas, tables, columns, and stores them in the metadata catalog.")
@@ -56,7 +56,7 @@ public class MetadataDiscoveryController {
     }
 
     @PostMapping("/sync/{sourceId}")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Re-sync metadata for a database connection",
             description = "Re-discovers metadata and detects changes (new schemas, tables, columns). Returns change summary.")
     public ResponseEntity<MetadataDiscoveryService.SyncResult> syncMetadata(@PathVariable Long sourceId) {
@@ -67,7 +67,7 @@ public class MetadataDiscoveryController {
     }
 
     @DeleteMapping("/source/{sourceId}")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Delete all metadata for a connection",
             description = "Removes all discovered metadata (schemas, tables, columns) for a connection")
     public ResponseEntity<Void> deleteMetadata(@PathVariable Long sourceId) {

@@ -80,15 +80,10 @@ public class User extends AbstractAuditingEntity<Long> implements Serializable {
     private LocalDateTime resetDate;
 
     @JsonIgnore
-    @ManyToMany
-    @JoinTable(
-        name = "user_authority",
-        joinColumns = { @JoinColumn(name = "user_id", referencedColumnName = "id") },
-        inverseJoinColumns = { @JoinColumn(name = "authority_name", referencedColumnName = "name") }
-    )
+    @OneToMany(mappedBy = "user")
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     @BatchSize(size = 20)
-    private Set<Authority> authorities = new HashSet<>();
+    private Set<io.oneapi.admin.entity.UserRole> userRoles = new HashSet<>();
 
     public Long getId() {
         return id;
@@ -187,12 +182,12 @@ public class User extends AbstractAuditingEntity<Long> implements Serializable {
         this.langKey = langKey;
     }
 
-    public Set<Authority> getAuthorities() {
-        return authorities;
+    public Set<io.oneapi.admin.entity.UserRole> getUserRoles() {
+        return userRoles;
     }
 
-    public void setAuthorities(Set<Authority> authorities) {
-        this.authorities = authorities;
+    public void setUserRoles(Set<io.oneapi.admin.entity.UserRole> userRoles) {
+        this.userRoles = userRoles;
     }
 
     @Override

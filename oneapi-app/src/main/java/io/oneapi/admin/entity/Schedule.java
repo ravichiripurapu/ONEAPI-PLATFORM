@@ -30,8 +30,7 @@ public class Schedule {
     @Column(nullable = false)
     private String name;
 
-    @Lob
-    @Column
+    @Column(length = 2000)
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -52,8 +51,7 @@ public class Schedule {
     @Enumerated(EnumType.STRING)
     private Report.OutputFormat outputFormat = Report.OutputFormat.JSON;
 
-    @Lob
-    @Column(name = "email_recipients")
+    @Column(name = "email_recipients", length = 2000)
     private String emailRecipients;
 
     @Column(name = "webhook_url")
@@ -66,8 +64,7 @@ public class Schedule {
     @Enumerated(EnumType.STRING)
     private RunStatus lastRunStatus;
 
-    @Lob
-    @Column(name = "last_run_message")
+    @Column(name = "last_run_message", length = 2000)
     private String lastRunMessage;
 
     @Column(name = "next_run_at")

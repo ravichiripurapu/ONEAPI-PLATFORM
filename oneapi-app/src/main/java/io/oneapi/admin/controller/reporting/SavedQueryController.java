@@ -79,11 +79,11 @@ public class SavedQueryController {
         return ResponseEntity.ok(queries);
     }
 
-    @GetMapping("/catalog/{catalogId}")
-    @Operation(summary = "Get queries by catalog", description = "Retrieves queries in a specific catalog")
+    @GetMapping("/source/{sourceId}")
+    @Operation(summary = "Get queries by source", description = "Retrieves queries for a specific data source")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<SavedQueryDTO>> getByCatalog(@PathVariable Long catalogId) {
-        List<SavedQueryDTO> queries = queryService.findByCatalog(catalogId);
+    public ResponseEntity<List<SavedQueryDTO>> getBySource(@PathVariable Long sourceId) {
+        List<SavedQueryDTO> queries = queryService.findBySource(sourceId);
         return ResponseEntity.ok(queries);
     }
 
