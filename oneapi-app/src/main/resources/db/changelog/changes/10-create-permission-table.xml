@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <!--
+        Migration 10: Create permission table for hierarchical RBAC
+        Permissions use NULL pattern for wildcards:
+        - Level 0 (Super Admin): All NULLs = access to everything
+        - Level 1 (Source): source_id set, rest NULL = access to all domains/entities/fields in source
+        - Level 2 (Domain): source_id + domain_id set = access to all entities/fields in domain
+        - Level 3 (Entity): source_id + domain_id + entity_id set = access to all fields in entity
+        - Level 4 (Field): All FKs set = access to specific field only
+    -->
+
+    <changeSet id="10-01-create-permission-table" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="permission"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="permission">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="role_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Nullable FKs create hierarchy (NULL = wildcard for all children) -->
+            <column name="source_id" type="BIGINT">
+                <constraints nullable="true"/>
+            </column>
+
+            <column name="domain_id" type="BIGINT">
+                <constraints nullable="true"/>
+            </column>
+
+            <column name="entity_id" type="BIGINT">
+                <constraints nullable="true"/>
+            </column>
+
+            <column name="field_id" type="BIGINT">
+                <constraints nullable="true"/>
+            </column>
+
+            <column name="permission_type" type="VARCHAR(20)" defaultValue="READ">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="created_by" type="VARCHAR(100)">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <!-- Foreign key constraints -->
+        <addForeignKeyConstraint
+                constraintName="fk_permission_role"
+                baseTableName="permission"
+                baseColumnNames="role_id"
+                referencedTableName="role"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                constraintName="fk_permission_source"
+                baseTableName="permission"
+                baseColumnNames="source_id"
+                referencedTableName="source_info"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                constraintName="fk_permission_domain"
+                baseTableName="permission"
+                baseColumnNames="domain_id"
+                referencedTableName="domain_info"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                constraintName="fk_permission_entity"
+                baseTableName="permission"
+                baseColumnNames="entity_id"
+                referencedTableName="entity_info"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                constraintName="fk_permission_field"
+                baseTableName="permission"
+                baseColumnNames="field_id"
+                referencedTableName="field_info"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <!-- Performance indexes for permission checking -->
+        <createIndex tableName="permission" indexName="idx_permission_role_source">
+            <column name="role_id"/>
+            <column name="source_id"/>
+        </createIndex>
+
+        <createIndex tableName="permission" indexName="idx_permission_role_domain">
+            <column name="role_id"/>
+            <column name="domain_id"/>
+        </createIndex>
+
+        <createIndex tableName="permission" indexName="idx_permission_role_entity">
+            <column name="role_id"/>
+            <column name="entity_id"/>
+        </createIndex>
+
+        <createIndex tableName="permission" indexName="idx_permission_role_field">
+            <column name="role_id"/>
+            <column name="field_id"/>
+        </createIndex>
+
+        <!-- Composite index for full hierarchy lookup -->
+        <createIndex tableName="permission" indexName="idx_permission_hierarchy">
+            <column name="role_id"/>
+            <column name="source_id"/>
+            <column name="domain_id"/>
+            <column name="entity_id"/>
+            <column name="field_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

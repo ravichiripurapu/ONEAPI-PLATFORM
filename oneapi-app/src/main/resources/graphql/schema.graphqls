@@ -1,0 +1,186 @@
+type Query {
+    # Connection queries
+    getAllConnections: [DatabaseConnection!]!
+    getConnection(id: ID!): DatabaseConnection
+    getConnectionByName(name: String!): DatabaseConnection
+    testConnectionById(id: ID!): ConnectionTestResult!
+
+    # Catalog queries (user-facing)
+    getCatalog(connectionId: ID!): CatalogResponse!
+
+    # Database Query queries (query actual data) - NEW SESSION-BASED
+    # Start new query or fetch next page
+    queryData(
+        # For new query:
+        connectionId: ID
+        tableName: String
+        schema: String
+        # For continuation:
+        sessionKey: String
+    ): QueryResponse!
+
+    # Get user's query preferences
+    getUserPreferences: UserQueryPreferences!
+}
+
+type Mutation {
+    # Connection mutations
+    createConnection(input: ConnectionInput!): DatabaseConnection!
+    updateConnection(id: ID!, input: ConnectionInput!): DatabaseConnection!
+    deleteConnection(id: ID!): Boolean!
+
+    # Catalog mutations
+    refreshCatalog(connectionId: ID!): CatalogResponse!
+
+    # Query session mutations
+    closeSession(sessionKey: String!): Boolean!
+
+    # User preferences mutations
+    updateUserPreferences(input: UserPreferencesInput!): UserQueryPreferences!
+}
+
+# Types
+
+type DatabaseConnection {
+    id: ID!
+    name: String!
+    type: DatabaseType!
+    host: String!
+    port: Int!
+    database: String!
+    username: String
+    additionalParams: String
+    active: Boolean!
+    createdAt: String!
+    updatedAt: String!
+}
+
+type ConnectionTestResult {
+    success: Boolean!
+    message: String
+    status: String!
+}
+
+type Catalog {
+    entities: [DataEntity!]!
+}
+
+type DataEntity {
+    name: String!
+    namespace: String
+    syncMode: String
+    hasIncrementalField: Boolean
+    incrementalFields: [String!]
+    primaryKeys: [[String!]!]
+    jsonSchema: JSON
+}
+
+type CatalogResponse {
+    connectionId: ID!
+    connectionName: String!
+    databaseType: String!
+    capturedAt: String!
+    tables: [Table!]!
+    views: [View!]!
+    stats: CatalogStats!
+}
+
+type Table {
+    name: String!
+    schema: String!
+    columns: [Column!]!
+    primaryKeys: [String!]!
+    incrementalFields: [String!]!
+    hasIncrementalField: Boolean!
+}
+
+type View {
+    name: String!
+    schema: String!
+    columns: [Column!]!
+}
+
+type Column {
+    name: String!
+    dataType: String!
+    nullable: Boolean
+    defaultValue: String
+    maxLength: Int
+    precision: Int
+    scale: Int
+}
+
+type CatalogStats {
+    totalTables: Int!
+    totalViews: Int!
+    totalColumns: Int!
+    version: Int!
+}
+
+# Inputs
+
+input ConnectionInput {
+    name: String!
+    type: String!
+    host: String!
+    port: Int!
+    database: String!
+    username: String
+    password: String
+    additionalParams: String
+    active: Boolean
+}
+
+# Enums
+
+enum DatabaseType {
+    POSTGRESQL
+    MYSQL
+    ORACLE
+    MSSQL
+    MARIADB
+}
+
+type TableDataResponse {
+    tableName: String!
+    data: [JSON!]!
+    count: Int!
+}
+
+# Query Session Types
+
+type QueryResponse {
+    sessionKey: String
+    records: [JSON!]!
+    metadata: QueryMetadata!
+}
+
+type QueryMetadata {
+    recordCount: Int!
+    totalFetched: Long!
+    hasMore: Boolean!
+    expiresAt: String
+    pageSize: Int!
+    requestCount: Int!
+}
+
+type UserQueryPreferences {
+    id: ID
+    userId: String!
+    pageSize: Int
+    ttlMinutes: Int
+    maxConcurrentSessions: Int
+    createdAt: String
+    updatedAt: String
+}
+
+input UserPreferencesInput {
+    pageSize: Int
+    ttlMinutes: Int
+    maxConcurrentSessions: Int
+}
+
+# Scalars
+
+scalar JSON
+scalar Long

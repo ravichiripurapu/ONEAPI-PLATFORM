@@ -1,0 +1,751 @@
+{
+  "info": {
+    "name": "OneAPI Platform - Complete API Collection",
+    "description": "Complete collection for testing OneAPI Platform APIs including Client, AccessControl, Throttle, and SeedData services",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8090",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "testuser",
+      "type": "string"
+    },
+    {
+      "key": "clientId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "clientSecret",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Client Service",
+      "item": [
+        {
+          "name": "Create API Client",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('clientId', jsonData.clientId);",
+                  "    pm.collectionVariables.set('clientSecret', jsonData.clientSecret);",
+                  "    pm.test('Client created successfully', function () {",
+                  "        pm.expect(jsonData.clientId).to.include('client_');",
+                  "        pm.expect(jsonData.clientSecret).to.include('sk_');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My Test Application\",\n  \"description\": \"Testing the Client API\",\n  \"scopes\": [\"read\", \"write\", \"admin\"],\n  \"rateLimit\": 1000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/clients",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clients"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List All Clients",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/clients",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clients"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Client Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/clients/{{clientId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clients", "{{clientId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Validate Client Credentials",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": \"{{clientId}}\",\n  \"clientSecret\": \"{{clientSecret}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/clients/validate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clients", "validate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Deactivate Client",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"active\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/clients/{{clientId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clients", "{{clientId}}", "status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Activate Client",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"active\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/clients/{{clientId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clients", "{{clientId}}", "status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Client",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/clients/{{clientId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clients", "{{clientId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Access Control",
+      "item": [
+        {
+          "name": "Permissions",
+          "item": [
+            {
+              "name": "Create Permission - database.read",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"database.read\",\n  \"resource\": \"database\",\n  \"action\": \"read\",\n  \"description\": \"Read access to databases\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/access-control/permissions",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "access-control", "permissions"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Permission - database.write",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"database.write\",\n  \"resource\": \"database\",\n  \"action\": \"write\",\n  \"description\": \"Write access to databases\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/access-control/permissions",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "access-control", "permissions"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Permission - query.execute",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"query.execute\",\n  \"resource\": \"query\",\n  \"action\": \"execute\",\n  \"description\": \"Execute queries\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/access-control/permissions",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "access-control", "permissions"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "List All Permissions",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/access-control/permissions",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "access-control", "permissions"]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Roles",
+          "item": [
+            {
+              "name": "Create Role - Viewer",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"viewer\",\n  \"description\": \"Read-only access to databases\",\n  \"permissions\": [\"database.read\"]\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/access-control/roles",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "access-control", "roles"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Role - Editor",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"editor\",\n  \"description\": \"Read and write access\",\n  \"permissions\": [\"database.read\", \"database.write\", \"query.execute\"]\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/access-control/roles",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "access-control", "roles"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "List All Roles",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/access-control/roles",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "access-control", "roles"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Add Permissions to Role",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "[\"query.execute\"]"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/access-control/roles/viewer/permissions",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "access-control", "roles", "viewer", "permissions"]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "User Roles",
+          "item": [
+            {
+              "name": "Assign Role to User",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-User-Id",
+                    "value": "admin"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"roleName\": \"viewer\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/access-control/users/alice/roles",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "access-control", "users", "alice", "roles"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Assign Role with Expiration",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-User-Id",
+                    "value": "admin"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"roleName\": \"editor\",\n  \"expiresAt\": \"2026-12-31T23:59:59\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/access-control/users/bob/roles",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "access-control", "users", "bob", "roles"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get User Roles",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/access-control/users/alice/roles",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "access-control", "users", "alice", "roles"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get User Permissions",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/access-control/users/alice/permissions",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "access-control", "users", "alice", "permissions"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Check User Permission",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/access-control/users/alice/check?resource=database&action=read",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "access-control", "users", "alice", "check"],
+                  "query": [
+                    {
+                      "key": "resource",
+                      "value": "database"
+                    },
+                    {
+                      "key": "action",
+                      "value": "read"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Remove Role from User",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/access-control/users/alice/roles/viewer",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "access-control", "users", "alice", "roles", "viewer"]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Throttle Service",
+      "item": [
+        {
+          "name": "Check Rate Limit",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/throttle/check/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "throttle", "check", "{{userId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Rate Limit Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/throttle/status/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "throttle", "status", "{{userId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Set Custom Rate Limit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requestsPerMinute\": 10\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/throttle/limits/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "throttle", "limits", "{{userId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reset Rate Limit",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/throttle/limits/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "throttle", "limits", "{{userId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Stress Test - 20 Requests",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// This will be run manually with Postman Runner"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/throttle/check/stresstest",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "throttle", "check", "stresstest"]
+            },
+            "description": "Use Postman Runner to run this 20 times and see rate limiting in action"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Seed Data Service",
+      "item": [
+        {
+          "name": "Generate 5 Sample Connections",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/seed-data/connections?count=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "seed-data", "connections"],
+              "query": [
+                {
+                  "key": "count",
+                  "value": "5"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generate 20 Sample Connections",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/seed-data/connections?count=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "seed-data", "connections"],
+              "query": [
+                {
+                  "key": "count",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Sample Query Data",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/seed-data/query-data?rows=100",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "seed-data", "query-data"],
+              "query": [
+                {
+                  "key": "rows",
+                  "value": "100"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cleanup Test Data",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/seed-data/cleanup",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "seed-data", "cleanup"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Database Connections",
+      "item": [
+        {
+          "name": "Create PostgreSQL Connection",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Production PostgreSQL\",\n  \"type\": \"POSTGRESQL\",\n  \"host\": \"localhost\",\n  \"port\": 5432,\n  \"database\": \"myapp\",\n  \"username\": \"postgres\",\n  \"password\": \"password\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/database-connections",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "database-connections"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List All Connections",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/database-connections",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "database-connections"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Health & Info",
+      "item": [
+        {
+          "name": "Swagger UI",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/swagger-ui.html",
+              "host": ["{{baseUrl}}"],
+              "path": ["swagger-ui.html"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "API Docs (JSON)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api-docs",
+              "host": ["{{baseUrl}}"],
+              "path": ["api-docs"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

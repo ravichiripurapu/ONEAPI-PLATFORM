@@ -1,0 +1,1131 @@
+{
+	"info": {
+		"_postman_id": "oneapi-security-tests-001",
+		"name": "OneAPI Platform - Security Tests",
+		"description": "Comprehensive security testing for OneAPI Platform with 3 test users:\n- admin (ROLE_ADMIN, ROLE_USER) - password: password123\n- john (ROLE_USER) - password: password123\n- jane (ROLE_USER) - password: password123",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{jwt_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "jwt_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "admin_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "john_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "jane_token",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Authentication",
+			"item": [
+				{
+					"name": "Login as Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has id_token\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.id_token).to.exist;",
+									"    pm.collectionVariables.set(\"admin_token\", jsonData.id_token);",
+									"    pm.collectionVariables.set(\"jwt_token\", jsonData.id_token);",
+									"});",
+									"",
+									"console.log(\"Admin token set successfully\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"admin\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/authenticate",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"authenticate"
+							]
+						},
+						"description": "Login as admin user to get JWT token"
+					},
+					"response": []
+				},
+				{
+					"name": "Login as John",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has id_token\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.id_token).to.exist;",
+									"    pm.collectionVariables.set(\"john_token\", jsonData.id_token);",
+									"});",
+									"",
+									"console.log(\"John token set successfully\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"john\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/authenticate",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"authenticate"
+							]
+						},
+						"description": "Login as john (regular user) to get JWT token"
+					},
+					"response": []
+				},
+				{
+					"name": "Login as Jane",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has id_token\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.id_token).to.exist;",
+									"    pm.collectionVariables.set(\"jane_token\", jsonData.id_token);",
+									"});",
+									"",
+									"console.log(\"Jane token set successfully\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"jane\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/authenticate",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"authenticate"
+							]
+						},
+						"description": "Login as jane (regular user) to get JWT token"
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication endpoints for all test users"
+		},
+		{
+			"name": "2. Catalog Management (Security Tests)",
+			"item": [
+				{
+					"name": "Admin - List All Catalogs",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set(\"jwt_token\", pm.collectionVariables.get(\"admin_token\"));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is an array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/catalogs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"catalogs"
+							]
+						},
+						"description": "Admin should be able to view all catalogs"
+					},
+					"response": []
+				},
+				{
+					"name": "Admin - Create Catalog (SUCCESS)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set(\"jwt_token\", pm.collectionVariables.get(\"admin_token\"));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Catalog created successfully\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.name).to.eql(\"Marketing Reports\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Marketing Reports\",\n  \"description\": \"Marketing analytics and reports\",\n  \"isPublic\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/catalogs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"catalogs"
+							]
+						},
+						"description": "Admin should successfully create a catalog"
+					},
+					"response": []
+				},
+				{
+					"name": "John - Create Catalog (FORBIDDEN)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set(\"jwt_token\", pm.collectionVariables.get(\"john_token\"));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 403 (Forbidden)\", function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"console.log(\"✓ John correctly denied catalog creation\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Unauthorized Catalog\",\n  \"description\": \"This should fail\",\n  \"isPublic\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/catalogs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"catalogs"
+							]
+						},
+						"description": "Regular user John should NOT be able to create catalogs (403 expected)"
+					},
+					"response": []
+				},
+				{
+					"name": "Jane - Create Catalog (FORBIDDEN)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set(\"jwt_token\", pm.collectionVariables.get(\"jane_token\"));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 403 (Forbidden)\", function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"console.log(\"✓ Jane correctly denied catalog creation\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Unauthorized Catalog\",\n  \"description\": \"This should fail\",\n  \"isPublic\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/catalogs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"catalogs"
+							]
+						},
+						"description": "Regular user Jane should NOT be able to create catalogs (403 expected)"
+					},
+					"response": []
+				},
+				{
+					"name": "Admin - Update Catalog (SUCCESS)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set(\"jwt_token\", pm.collectionVariables.get(\"admin_token\"));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Sales Reports Updated\",\n  \"description\": \"Updated sales reports catalog\",\n  \"isPublic\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/catalogs/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"catalogs",
+								"1"
+							]
+						},
+						"description": "Admin should successfully update a catalog"
+					},
+					"response": []
+				},
+				{
+					"name": "John - Update Catalog (FORBIDDEN)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set(\"jwt_token\", pm.collectionVariables.get(\"john_token\"));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 403 (Forbidden)\", function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"console.log(\"✓ John correctly denied catalog update\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Hacked Catalog\",\n  \"description\": \"This should fail\",\n  \"isPublic\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/catalogs/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"catalogs",
+								"1"
+							]
+						},
+						"description": "Regular user John should NOT be able to update catalogs (403 expected)"
+					},
+					"response": []
+				}
+			],
+			"description": "Test catalog management endpoints with different user roles"
+		},
+		{
+			"name": "3. Metadata Discovery (Admin Only)",
+			"item": [
+				{
+					"name": "Admin - Discover Metadata (SUCCESS)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set(\"jwt_token\", pm.collectionVariables.get(\"admin_token\"));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/metadata/discover/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"metadata",
+								"discover",
+								"1"
+							]
+						},
+						"description": "Admin should successfully discover metadata for connection ID 1"
+					},
+					"response": []
+				},
+				{
+					"name": "John - Discover Metadata (FORBIDDEN)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set(\"jwt_token\", pm.collectionVariables.get(\"john_token\"));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 403 (Forbidden)\", function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"console.log(\"✓ John correctly denied metadata discovery\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/metadata/discover/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"metadata",
+								"discover",
+								"1"
+							]
+						},
+						"description": "Regular user John should NOT be able to discover metadata (403 expected)"
+					},
+					"response": []
+				},
+				{
+					"name": "Admin - Sync Metadata (SUCCESS)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set(\"jwt_token\", pm.collectionVariables.get(\"admin_token\"));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/metadata/sync/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"metadata",
+								"sync",
+								"1"
+							]
+						},
+						"description": "Admin should successfully sync metadata for connection ID 1"
+					},
+					"response": []
+				},
+				{
+					"name": "Jane - Sync Metadata (FORBIDDEN)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set(\"jwt_token\", pm.collectionVariables.get(\"jane_token\"));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 403 (Forbidden)\", function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"console.log(\"✓ Jane correctly denied metadata sync\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/metadata/sync/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"metadata",
+								"sync",
+								"1"
+							]
+						},
+						"description": "Regular user Jane should NOT be able to sync metadata (403 expected)"
+					},
+					"response": []
+				},
+				{
+					"name": "John - List Schemas (ALLOWED)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set(\"jwt_token\", pm.collectionVariables.get(\"john_token\"));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"console.log(\"✓ John can view schemas (read-only)\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/metadata/schemas/connection/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"metadata",
+								"schemas",
+								"connection",
+								"1"
+							]
+						},
+						"description": "Regular users should be able to VIEW metadata (read-only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Test metadata discovery endpoints - Admin can discover/sync, Users can only view"
+		},
+		{
+			"name": "4. Saved Queries",
+			"item": [
+				{
+					"name": "John - Create Query in Sales Catalog",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set(\"jwt_token\", pm.collectionVariables.get(\"john_token\"));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"My Sales Query\",\n  \"description\": \"Test query created by John\",\n  \"queryText\": \"SELECT * FROM employees WHERE department = 'Sales'\",\n  \"connectionId\": 1,\n  \"catalogId\": 1,\n  \"isPublic\": false,\n  \"isFavorite\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/queries",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"queries"
+							]
+						},
+						"description": "John creates a query in Sales catalog (ID 1)"
+					},
+					"response": []
+				},
+				{
+					"name": "John - Execute Own Query",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set(\"jwt_token\", pm.collectionVariables.get(\"john_token\"));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has records\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.records).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/queries/1/execute",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"queries",
+								"1",
+								"execute"
+							]
+						},
+						"description": "John executes saved query ID 1 (his own query)"
+					},
+					"response": []
+				},
+				{
+					"name": "Jane - Execute Query with Parameters",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set(\"jwt_token\", pm.collectionVariables.get(\"jane_token\"));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has records\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.records).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"minSalary\": 75000\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/queries/2/execute",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"queries",
+								"2",
+								"execute"
+							]
+						},
+						"description": "Jane executes saved query ID 2 with parameter substitution"
+					},
+					"response": []
+				},
+				{
+					"name": "John - Preview Custom SQL",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set(\"jwt_token\", pm.collectionVariables.get(\"john_token\"));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is an array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "text/plain"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "SELECT first_name, last_name, salary FROM employees ORDER BY salary DESC"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/queries/preview?connectionId=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"queries",
+								"preview"
+							],
+							"query": [
+								{
+									"key": "connectionId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "John previews a custom SQL query (limited to 10 results)"
+					},
+					"response": []
+				}
+			],
+			"description": "Test saved query creation and execution with different users"
+		},
+		{
+			"name": "5. Database Connections",
+			"item": [
+				{
+					"name": "Admin - List Connections",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set(\"jwt_token\", pm.collectionVariables.get(\"admin_token\"));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/connections",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"connections"
+							]
+						},
+						"description": "Admin lists all database connections"
+					},
+					"response": []
+				},
+				{
+					"name": "John - List Connections",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set(\"jwt_token\", pm.collectionVariables.get(\"john_token\"));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"console.log(\"✓ John can view connections (read-only)\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/connections",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"connections"
+							]
+						},
+						"description": "Regular users should be able to view connections"
+					},
+					"response": []
+				}
+			],
+			"description": "Test database connection endpoints"
+		},
+		{
+			"name": "6. Health & Status",
+			"item": [
+				{
+					"name": "Health Check (No Auth)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/actuator/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Public health check endpoint (no authentication required)"
+					},
+					"response": []
+				}
+			],
+			"description": "Test public health endpoints"
+		}
+	]
+}

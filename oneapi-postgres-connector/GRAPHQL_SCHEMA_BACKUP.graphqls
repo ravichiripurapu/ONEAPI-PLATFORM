@@ -1,0 +1,38 @@
+type Query {
+    checkConnection(config: ConfigInput!): ConnectionStatusResponse!
+    discoverCatalog(config: ConfigInput!): CatalogResponse!
+    readData(config: ConfigInput!, entityName: String!, namespace: String, limit: Int): DataResponse!
+}
+
+input ConfigInput {
+    host: String
+    port: Int
+    database: String!
+    username: String
+    password: String
+}
+
+type ConnectionStatusResponse {
+    status: String!
+    message: String
+}
+
+type CatalogResponse {
+    entities: [EntityResponse!]!
+}
+
+type EntityResponse {
+    name: String!
+    namespace: String!
+    syncMode: String!
+    hasIncrementalField: Boolean
+    incrementalFields: [String!]
+    primaryKeys: [[String!]!]
+}
+
+type DataResponse {
+    records: [JSON!]!
+    count: Int!
+}
+
+scalar JSON

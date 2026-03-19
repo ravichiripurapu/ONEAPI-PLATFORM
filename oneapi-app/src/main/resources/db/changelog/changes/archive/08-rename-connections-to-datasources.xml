@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="08-rename-connections-to-datasources" author="oneapi">
+        <comment>Rename database_connections table to datasources for better terminology</comment>
+
+        <!-- Rename the table -->
+        <renameTable
+                oldTableName="database_connections"
+                newTableName="datasources"/>
+
+        <!-- Update foreign key constraint name in catalog table -->
+        <dropForeignKeyConstraint
+                baseTableName="catalog"
+                constraintName="fk_catalog_connection"/>
+
+        <addForeignKeyConstraint
+                baseTableName="catalog"
+                baseColumnNames="connection_id"
+                constraintName="fk_catalog_datasource"
+                referencedTableName="datasources"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+    </changeSet>
+
+</databaseChangeLog>

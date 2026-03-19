@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <!--
+        Migration 09: Create role table for RBAC
+        Roles are assigned to users and contain permissions for data access
+    -->
+
+    <changeSet id="09-01-create-role-table" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="role"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="role">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+
+            <column name="description" type="VARCHAR(500)">
+                <constraints nullable="true"/>
+            </column>
+
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="created_by" type="VARCHAR(100)">
+                <constraints nullable="true"/>
+            </column>
+
+            <column name="updated_by" type="VARCHAR(100)">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="role" indexName="idx_role_name">
+            <column name="name"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Create user_role junction table for many-to-many relationship -->
+    <changeSet id="09-02-create-user-role-table" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="user_role"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="user_role">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="role_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="assigned_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="assigned_by" type="VARCHAR(100)">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                constraintName="fk_user_role_user"
+                baseTableName="user_role"
+                baseColumnNames="user_id"
+                referencedTableName="app_user"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                constraintName="fk_user_role_role"
+                baseTableName="user_role"
+                baseColumnNames="role_id"
+                referencedTableName="role"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <createIndex tableName="user_role" indexName="idx_user_role_user">
+            <column name="user_id"/>
+        </createIndex>
+
+        <createIndex tableName="user_role" indexName="idx_user_role_role">
+            <column name="role_id"/>
+        </createIndex>
+
+        <!-- Ensure unique user-role combinations -->
+        <addUniqueConstraint
+                tableName="user_role"
+                columnNames="user_id, role_id"
+                constraintName="uk_user_role"/>
+    </changeSet>
+
+</databaseChangeLog>

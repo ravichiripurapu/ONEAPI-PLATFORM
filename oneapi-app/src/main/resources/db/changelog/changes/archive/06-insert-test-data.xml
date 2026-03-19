@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="06-insert-test-data" author="oneapi">
+        <comment>Insert additional test data for security testing (john, jane, catalogs, connections)</comment>
+
+        <!-- NOTE: Admin (ID=1, password: admin123) and Developer (ID=2, password: dev123) users already exist -->
+        <!-- Authorities ROLE_ADMIN and ROLE_USER already exist from 03-create-security-schema.xml -->
+
+        <!-- Test Users - Password: "password123" -->
+        <!-- BCrypt hash: $2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG -->
+
+        <insert tableName="app_user">
+            <column name="id" value="3"/>
+            <column name="login" value="john"/>
+            <column name="password_hash" value="$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG"/>
+            <column name="first_name" value="John"/>
+            <column name="last_name" value="Smith"/>
+            <column name="email" value="john@oneapi.io"/>
+            <column name="activated" valueBoolean="true"/>
+            <column name="lang_key" value="en"/>
+            <column name="created_by" value="system"/>
+            <column name="created_date" valueDate="2024-01-01T00:00:00"/>
+        </insert>
+
+        <insert tableName="app_user">
+            <column name="id" value="4"/>
+            <column name="login" value="jane"/>
+            <column name="password_hash" value="$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG"/>
+            <column name="first_name" value="Jane"/>
+            <column name="last_name" value="Doe"/>
+            <column name="email" value="jane@oneapi.io"/>
+            <column name="activated" valueBoolean="true"/>
+            <column name="lang_key" value="en"/>
+            <column name="created_by" value="system"/>
+            <column name="created_date" valueDate="2024-01-01T00:00:00"/>
+        </insert>
+
+        <insert tableName="user_authority">
+            <column name="user_id" value="3"/>
+            <column name="authority_name" value="ROLE_USER"/>
+        </insert>
+
+        <insert tableName="user_authority">
+            <column name="user_id" value="4"/>
+            <column name="authority_name" value="ROLE_USER"/>
+        </insert>
+
+        <!-- Test Database Connection - Points to the same embedded H2 database -->
+        <insert tableName="database_connections">
+            <column name="id" value="1"/>
+            <column name="name" value="Local H2 Database (Embedded)"/>
+            <column name="type" value="H2"/>
+            <column name="host" value=""/>
+            <column name="port" value="0"/>
+            <column name="database" value="jdbc:h2:file:./data/oneapi;AUTO_SERVER=TRUE"/>
+            <column name="username" value="sa"/>
+            <column name="password" value=""/>
+            <column name="created_at" valueDate="2024-01-01T00:00:00"/>
+            <column name="updated_at" valueDate="2024-01-01T00:00:00"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+
+        <!-- Test Catalogs -->
+        <insert tableName="catalog">
+            <column name="id" value="1"/>
+            <column name="name" value="Sales Reports"/>
+            <column name="description" value="Sales and revenue reports catalog"/>
+            <column name="created_by" value="admin"/>
+            <column name="created_date" valueDate="2024-01-01T00:00:00"/>
+            <column name="last_modified_by" value="admin"/>
+            <column name="last_modified_date" valueDate="2024-01-01T00:00:00"/>
+        </insert>
+
+        <insert tableName="catalog">
+            <column name="id" value="2"/>
+            <column name="name" value="HR Reports"/>
+            <column name="description" value="Human resources and employee reports catalog"/>
+            <column name="created_by" value="admin"/>
+            <column name="created_date" valueDate="2024-01-01T00:00:00"/>
+            <column name="last_modified_by" value="admin"/>
+            <column name="last_modified_date" valueDate="2024-01-01T00:00:00"/>
+        </insert>
+
+        <!-- Reset auto-increment sequences to avoid conflicts -->
+        <sql dbms="h2">
+            ALTER TABLE catalog ALTER COLUMN id RESTART WITH 3;
+            ALTER TABLE database_connections ALTER COLUMN id RESTART WITH 2;
+        </sql>
+
+    </changeSet>
+
+</databaseChangeLog>

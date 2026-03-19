@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="9-rename-connection-id-to-datasource-id" author="oneapi">
+        <comment>Rename connection_id columns to datasource_id for consistency</comment>
+
+        <!-- 1. Rename connection_id in catalog table -->
+        <dropForeignKeyConstraint
+                baseTableName="catalog"
+                constraintName="fk_catalog_datasource"/>
+
+        <renameColumn
+                tableName="catalog"
+                oldColumnName="connection_id"
+                newColumnName="datasource_id"
+                columnDataType="BIGINT"/>
+
+        <addForeignKeyConstraint
+                baseTableName="catalog"
+                baseColumnNames="datasource_id"
+                constraintName="fk_catalog_datasource"
+                referencedTableName="datasources"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <!-- 2. Rename connection_id in saved_query table -->
+        <dropForeignKeyConstraint
+                baseTableName="saved_query"
+                constraintName="fk_saved_query_connection"/>
+
+        <renameColumn
+                tableName="saved_query"
+                oldColumnName="connection_id"
+                newColumnName="datasource_id"
+                columnDataType="BIGINT"/>
+
+        <addForeignKeyConstraint
+                baseTableName="saved_query"
+                baseColumnNames="datasource_id"
+                constraintName="fk_saved_query_datasource"
+                referencedTableName="datasources"
+                referencedColumnNames="id"
+                onDelete="SET NULL"/>
+
+        <!-- 3. Rename connection_id in report table -->
+        <dropForeignKeyConstraint
+                baseTableName="report"
+                constraintName="fk_report_connection"/>
+
+        <renameColumn
+                tableName="report"
+                oldColumnName="connection_id"
+                newColumnName="datasource_id"
+                columnDataType="BIGINT"/>
+
+        <addForeignKeyConstraint
+                baseTableName="report"
+                baseColumnNames="datasource_id"
+                constraintName="fk_report_datasource"
+                referencedTableName="datasources"
+                referencedColumnNames="id"
+                onDelete="SET NULL"/>
+
+        <!-- 4. Rename connection_id in schema_metadata table -->
+        <dropForeignKeyConstraint
+                baseTableName="schema_metadata"
+                constraintName="fk_schema_connection"/>
+
+        <renameColumn
+                tableName="schema_metadata"
+                oldColumnName="connection_id"
+                newColumnName="datasource_id"
+                columnDataType="BIGINT"/>
+
+        <addForeignKeyConstraint
+                baseTableName="schema_metadata"
+                baseColumnNames="datasource_id"
+                constraintName="fk_schema_datasource"
+                referencedTableName="datasources"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <!-- 5. Rename connection_id in table_metadata table -->
+        <dropForeignKeyConstraint
+                baseTableName="table_metadata"
+                constraintName="fk_table_connection"/>
+
+        <renameColumn
+                tableName="table_metadata"
+                oldColumnName="connection_id"
+                newColumnName="datasource_id"
+                columnDataType="BIGINT"/>
+
+        <addForeignKeyConstraint
+                baseTableName="table_metadata"
+                baseColumnNames="datasource_id"
+                constraintName="fk_table_datasource"
+                referencedTableName="datasources"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <!-- 6. Rename database_connection_id in database_permission table -->
+        <renameColumn
+                tableName="database_permission"
+                oldColumnName="database_connection_id"
+                newColumnName="datasource_id"
+                columnDataType="BIGINT"/>
+
+        <!-- 7. Rename database_connection_id in table_permission table -->
+        <renameColumn
+                tableName="table_permission"
+                oldColumnName="database_connection_id"
+                newColumnName="datasource_id"
+                columnDataType="BIGINT"/>
+
+        <!-- 8. Rename database_connection_id in column_permission table -->
+        <renameColumn
+                tableName="column_permission"
+                oldColumnName="database_connection_id"
+                newColumnName="datasource_id"
+                columnDataType="BIGINT"/>
+
+    </changeSet>
+
+</databaseChangeLog>

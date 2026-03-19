@@ -1,0 +1,110 @@
+spring:
+  application:
+    name: oneapi-app
+
+  datasource:
+    url: jdbc:h2:file:./data/oneapi;AUTO_SERVER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+    enabled: true
+    drop-first: false
+
+  graphql:
+    graphiql:
+      enabled: true
+      path: /graphiql
+    path: /graphql
+
+  security:
+    authentication:
+      jwt:
+        # This secret key is base64 encoded. In production, use a secure random key and store in environment variable
+        # Generated using: openssl rand -base64 64
+        base64-secret: YWRtaW4tc2VjcmV0LWtleS13aGljaC1zaG91bGQtYmUtY2hhbmdlZC1pbi1wcm9kdWN0aW9uLWFuZC1iYXNlNjQtZW5jb2RlZAo=
+        # Token validity in seconds (24 hours)
+        token-validity-in-seconds: 86400
+        # Remember me token validity (7 days)
+        token-validity-in-seconds-for-remember-me: 604800
+
+server:
+  port: 8080
+  # Session timeout for query sessions (30 minutes)
+  servlet:
+    session:
+      timeout: 30m
+
+# Spring Security Configuration
+# Note: Actual authentication is configured in SecurityConfig.java
+# These are demo credentials for development only
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+
+oneapi:
+  query:
+    session:
+      # Cache type: CAFFEINE (in-memory), REDIS (distributed), or BOTH (L1+L2)
+      cache-type: CAFFEINE
+      # Default page size for queries
+      default-page-size: 100
+      # Minimum page size users can set
+      min-page-size: 10
+      # Maximum page size users can set
+      max-page-size: 1000
+      # Default TTL for sessions (minutes)
+      default-ttl-minutes: 15
+      # Maximum TTL users can set (minutes)
+      max-ttl-minutes: 60
+      # Default max concurrent sessions per user
+      default-max-sessions: 10
+      # Caffeine cache configuration
+      caffeine:
+        maximum-size: 1000
+        expire-after-write-minutes: 30
+      # Redis configuration (only used if cache-type is REDIS or BOTH)
+      redis:
+        key-prefix: "oneapi:session:"
+        # Redis connection settings
+        # host: localhost
+        # port: 6379
+        # password:
+        # database: 0
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  metrics:
+    enabled: true
+    export:
+      simple:
+        enabled: true
+
+logging:
+  level:
+    io.oneapi: DEBUG
+    org.springframework.graphql: DEBUG
+    org.hibernate.SQL: DEBUG

@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Create Catalog table -->
+    <changeSet id="04-create-catalog-table" author="oneapi">
+                <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="catalog"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="catalog">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="CLOB"/>
+            <column name="datasource_id" type="BIGINT">
+                <constraints foreignKeyName="fk_catalog_datasource" references="datasources(id)"/>
+            </column>
+            <column name="created_by" type="VARCHAR(50)"/>
+            <column name="created_date" type="TIMESTAMP"/>
+            <column name="last_modified_by" type="VARCHAR(50)"/>
+            <column name="last_modified_date" type="TIMESTAMP"/>
+        </createTable>
+
+        <addUniqueConstraint tableName="catalog" columnNames="name" constraintName="uk_catalog_name"/>
+        <createIndex tableName="catalog" indexName="idx_catalog_created_by">
+            <column name="created_by"/>
+        </createIndex>
+        <createIndex tableName="catalog" indexName="idx_catalog_datasource">
+            <column name="datasource_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Create SavedQuery table -->
+    <changeSet id="04-create-saved-query-table" author="oneapi">
+                <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="saved_query"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="saved_query">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="CLOB"/>
+            <column name="query_text" type="CLOB">
+                <constraints nullable="false"/>
+            </column>
+            <column name="datasource_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_saved_query_connection" references="datasources(id)"/>
+            </column>
+            <column name="catalog_id" type="BIGINT">
+                <constraints foreignKeyName="fk_saved_query_catalog" references="catalog(id)"/>
+            </column>
+            <column name="is_public" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_favorite" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="execution_count" type="BIGINT" defaultValueNumeric="0"/>
+            <column name="last_executed_at" type="TIMESTAMP"/>
+            <column name="avg_execution_time_ms" type="BIGINT"/>
+            <column name="created_by" type="VARCHAR(50)"/>
+            <column name="created_date" type="TIMESTAMP"/>
+            <column name="last_modified_by" type="VARCHAR(50)"/>
+            <column name="last_modified_date" type="TIMESTAMP"/>
+        </createTable>
+
+        <createIndex tableName="saved_query" indexName="idx_saved_query_connection">
+            <column name="datasource_id"/>
+        </createIndex>
+        <createIndex tableName="saved_query" indexName="idx_saved_query_catalog">
+            <column name="catalog_id"/>
+        </createIndex>
+        <createIndex tableName="saved_query" indexName="idx_saved_query_created_by">
+            <column name="created_by"/>
+        </createIndex>
+        <createIndex tableName="saved_query" indexName="idx_saved_query_public">
+            <column name="is_public"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Create Report table -->
+    <changeSet id="04-create-report-table" author="oneapi">
+                <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="report"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="report">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="CLOB"/>
+            <column name="query_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_report_query" references="saved_query(id)"/>
+            </column>
+            <column name="catalog_id" type="BIGINT">
+                <constraints foreignKeyName="fk_report_catalog" references="catalog(id)"/>
+            </column>
+            <column name="output_format" type="VARCHAR(50)" defaultValue="JSON">
+                <constraints nullable="false"/>
+            </column>
+            <column name="parameters" type="CLOB"/>
+            <column name="default_parameters" type="CLOB"/>
+            <column name="is_public" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="execution_count" type="BIGINT" defaultValueNumeric="0"/>
+            <column name="last_executed_at" type="TIMESTAMP"/>
+            <column name="avg_execution_time_ms" type="BIGINT"/>
+            <column name="created_by" type="VARCHAR(50)"/>
+            <column name="created_date" type="TIMESTAMP"/>
+            <column name="last_modified_by" type="VARCHAR(50)"/>
+            <column name="last_modified_date" type="TIMESTAMP"/>
+        </createTable>
+
+        <createIndex tableName="report" indexName="idx_report_query">
+            <column name="query_id"/>
+        </createIndex>
+        <createIndex tableName="report" indexName="idx_report_catalog">
+            <column name="catalog_id"/>
+        </createIndex>
+        <createIndex tableName="report" indexName="idx_report_created_by">
+            <column name="created_by"/>
+        </createIndex>
+        <createIndex tableName="report" indexName="idx_report_public">
+            <column name="is_public"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Create Dashboard table -->
+    <changeSet id="04-create-dashboard-table" author="oneapi">
+                <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="dashboard"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="dashboard">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="CLOB"/>
+            <column name="catalog_id" type="BIGINT">
+                <constraints foreignKeyName="fk_dashboard_catalog" references="catalog(id)"/>
+            </column>
+            <column name="is_public" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="refresh_interval_seconds" type="INT"/>
+            <column name="layout" type="CLOB"/>
+            <column name="view_count" type="BIGINT" defaultValueNumeric="0"/>
+            <column name="last_viewed_at" type="TIMESTAMP"/>
+            <column name="created_by" type="VARCHAR(50)"/>
+            <column name="created_date" type="TIMESTAMP"/>
+            <column name="last_modified_by" type="VARCHAR(50)"/>
+            <column name="last_modified_date" type="TIMESTAMP"/>
+        </createTable>
+
+        <createIndex tableName="dashboard" indexName="idx_dashboard_catalog">
+            <column name="catalog_id"/>
+        </createIndex>
+        <createIndex tableName="dashboard" indexName="idx_dashboard_created_by">
+            <column name="created_by"/>
+        </createIndex>
+        <createIndex tableName="dashboard" indexName="idx_dashboard_public">
+            <column name="is_public"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Create Widget table -->
+    <changeSet id="04-create-widget-table" author="oneapi">
+                <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="widget"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="widget">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="CLOB"/>
+            <column name="dashboard_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_widget_dashboard" references="dashboard(id)" deleteCascade="true"/>
+            </column>
+            <column name="query_id" type="BIGINT">
+                <constraints foreignKeyName="fk_widget_query" references="saved_query(id)"/>
+            </column>
+            <column name="report_id" type="BIGINT">
+                <constraints foreignKeyName="fk_widget_report" references="report(id)"/>
+            </column>
+            <column name="widget_type" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="position_x" type="INT"/>
+            <column name="position_y" type="INT"/>
+            <column name="width" type="INT"/>
+            <column name="height" type="INT"/>
+            <column name="configuration" type="CLOB"/>
+            <column name="refresh_interval_seconds" type="INT"/>
+            <column name="created_by" type="VARCHAR(50)"/>
+            <column name="created_date" type="TIMESTAMP"/>
+            <column name="last_modified_by" type="VARCHAR(50)"/>
+            <column name="last_modified_date" type="TIMESTAMP"/>
+        </createTable>
+
+        <createIndex tableName="widget" indexName="idx_widget_dashboard">
+            <column name="dashboard_id"/>
+        </createIndex>
+        <createIndex tableName="widget" indexName="idx_widget_query">
+            <column name="query_id"/>
+        </createIndex>
+        <createIndex tableName="widget" indexName="idx_widget_report">
+            <column name="report_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Create Schedule table -->
+    <changeSet id="04-create-schedule-table" author="oneapi">
+                <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="schedule"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="schedule">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="CLOB"/>
+            <column name="report_id" type="BIGINT">
+                <constraints foreignKeyName="fk_schedule_report" references="report(id)"/>
+            </column>
+            <column name="query_id" type="BIGINT">
+                <constraints foreignKeyName="fk_schedule_query" references="saved_query(id)"/>
+            </column>
+            <column name="cron_expression" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="enabled" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="output_format" type="VARCHAR(50)" defaultValue="JSON"/>
+            <column name="email_recipients" type="CLOB"/>
+            <column name="webhook_url" type="VARCHAR(500)"/>
+            <column name="last_run_at" type="TIMESTAMP"/>
+            <column name="last_run_status" type="VARCHAR(50)"/>
+            <column name="last_run_message" type="CLOB"/>
+            <column name="next_run_at" type="TIMESTAMP"/>
+            <column name="execution_count" type="BIGINT" defaultValueNumeric="0"/>
+            <column name="success_count" type="BIGINT" defaultValueNumeric="0"/>
+            <column name="failure_count" type="BIGINT" defaultValueNumeric="0"/>
+            <column name="created_by" type="VARCHAR(50)"/>
+            <column name="created_date" type="TIMESTAMP"/>
+            <column name="last_modified_by" type="VARCHAR(50)"/>
+            <column name="last_modified_date" type="TIMESTAMP"/>
+        </createTable>
+
+        <createIndex tableName="schedule" indexName="idx_schedule_report">
+            <column name="report_id"/>
+        </createIndex>
+        <createIndex tableName="schedule" indexName="idx_schedule_query">
+            <column name="query_id"/>
+        </createIndex>
+        <createIndex tableName="schedule" indexName="idx_schedule_enabled">
+            <column name="enabled"/>
+        </createIndex>
+        <createIndex tableName="schedule" indexName="idx_schedule_next_run">
+            <column name="next_run_at"/>
+        </createIndex>
+        <createIndex tableName="schedule" indexName="idx_schedule_created_by">
+            <column name="created_by"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Create AuditLog table -->
+    <changeSet id="04-create-audit-log-table" author="oneapi">
+                <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="audit_log"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="audit_log">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_login" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="action" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="entity_type" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="entity_id" type="BIGINT"/>
+            <column name="entity_name" type="VARCHAR(255)"/>
+            <column name="details" type="CLOB"/>
+            <column name="ip_address" type="VARCHAR(45)"/>
+            <column name="user_agent" type="CLOB"/>
+            <column name="timestamp" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="execution_time_ms" type="BIGINT"/>
+            <column name="status" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="error_message" type="CLOB"/>
+        </createTable>
+
+        <createIndex tableName="audit_log" indexName="idx_audit_user_action">
+            <column name="user_login"/>
+            <column name="action"/>
+        </createIndex>
+        <createIndex tableName="audit_log" indexName="idx_audit_timestamp">
+            <column name="timestamp"/>
+        </createIndex>
+        <createIndex tableName="audit_log" indexName="idx_audit_entity">
+            <column name="entity_type"/>
+            <column name="entity_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

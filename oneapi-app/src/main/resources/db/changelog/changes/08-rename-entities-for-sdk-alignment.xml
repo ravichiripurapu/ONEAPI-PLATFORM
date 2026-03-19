@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <!--
+        Migration 08: Rename entities for SDK alignment
+        API Entities: SourceInfo → DomainInfo → EntityInfo → FieldInfo
+        Table Names: source_info → domain_info → entity_info → field_info
+    -->
+
+    <!-- 08-01: Rename datasources table to source_info -->
+    <changeSet id="08-01-rename-datasources-to-source-info" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="datasources"/>
+            <not>
+                <tableExists tableName="source_info"/>
+            </not>
+        </preConditions>
+        <renameTable oldTableName="datasources" newTableName="source_info"/>
+    </changeSet>
+
+    <!-- 08-02: Rename column_metadata table to field_info -->
+    <changeSet id="08-02-rename-column-metadata-to-field-info" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="column_metadata"/>
+            <not>
+                <tableExists tableName="field_info"/>
+            </not>
+        </preConditions>
+        <renameTable oldTableName="column_metadata" newTableName="field_info"/>
+    </changeSet>
+
+    <!-- 08-03: Rename table_metadata table to entity_info -->
+    <changeSet id="08-03-rename-table-metadata-to-entity-info" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="table_metadata"/>
+            <not>
+                <tableExists tableName="entity_info"/>
+            </not>
+        </preConditions>
+        <renameTable oldTableName="table_metadata" newTableName="entity_info"/>
+    </changeSet>
+
+    <!-- 08-04: Rename schema_metadata table to domain_info -->
+    <changeSet id="08-04-rename-schema-metadata-to-domain-info" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="schema_metadata"/>
+            <not>
+                <tableExists tableName="domain_info"/>
+            </not>
+        </preConditions>
+        <renameTable oldTableName="schema_metadata" newTableName="domain_info"/>
+    </changeSet>
+
+    <!-- 08-05: Rename datasource_id column in saved_query table -->
+    <changeSet id="08-05-rename-datasource-id-in-saved-query" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="saved_query" columnName="datasource_id"/>
+        </preConditions>
+        <renameColumn tableName="saved_query" oldColumnName="datasource_id" newColumnName="source_id"/>
+    </changeSet>
+
+    <!-- 08-06: Rename datasource_id column in domain_info table -->
+    <changeSet id="08-06-rename-datasource-id-in-domain-info" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="domain_info" columnName="datasource_id"/>
+        </preConditions>
+        <renameColumn tableName="domain_info" oldColumnName="datasource_id" newColumnName="source_id"/>
+    </changeSet>
+
+    <!-- 08-07: Rename datasource_id column in catalog table -->
+    <changeSet id="08-07-rename-datasource-id-in-catalog" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="catalog" columnName="datasource_id"/>
+        </preConditions>
+        <renameColumn tableName="catalog" oldColumnName="datasource_id" newColumnName="source_id"/>
+    </changeSet>
+
+    <!-- 08-08: Rename schema_id column in entity_info table -->
+    <changeSet id="08-08-rename-schema-id-in-entity-info" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="entity_info" columnName="schema_id"/>
+        </preConditions>
+        <renameColumn tableName="entity_info" oldColumnName="schema_id" newColumnName="domain_id"/>
+    </changeSet>
+
+    <!-- 08-09: Rename table_id column in field_info table -->
+    <changeSet id="08-09-rename-table-id-in-field-info" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="field_info" columnName="table_id"/>
+        </preConditions>
+        <renameColumn tableName="field_info" oldColumnName="table_id" newColumnName="entity_id"/>
+    </changeSet>
+
+    <!-- 08-10: Rename sdk_catalog_json column in domain_info table -->
+    <changeSet id="08-10-rename-sdk-catalog-json-in-domain-info" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="domain_info" columnName="sdk_catalog_json"/>
+        </preConditions>
+        <renameColumn tableName="domain_info" oldColumnName="sdk_catalog_json" newColumnName="sdk_domain_json"/>
+    </changeSet>
+
+</databaseChangeLog>

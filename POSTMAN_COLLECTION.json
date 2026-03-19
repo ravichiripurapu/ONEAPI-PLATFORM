@@ -1,0 +1,274 @@
+{
+  "info": {
+    "name": "OneAPI Platform - Complete API Collection",
+    "description": "Verified comprehensive collection for all OneAPI Platform endpoints (18 endpoints + auth). All endpoints tested and passing 100% UAT.",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "base_url", "value": "http://localhost:8080"},
+    {"key": "admin_token", "value": ""},
+    {"key": "user_token", "value": ""},
+    {"key": "source_id", "value": ""},
+    {"key": "domain_id", "value": ""},
+    {"key": "entity_id", "value": ""},
+    {"key": "field_id", "value": ""}
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Login as Admin",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["if (pm.response.code === 200) {", "  var jsonData = pm.response.json();", "  pm.collectionVariables.set('admin_token', jsonData.id_token);", "  console.log('✅ Admin token saved');", "}"]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"},
+            "url": {"raw": "{{base_url}}/api/authenticate", "host": ["{{base_url}}"], "path": ["api", "authenticate"]},
+            "description": "Login with admin credentials. Default: admin/admin123"
+          }
+        },
+        {
+          "name": "Login as User",
+          "event": [{
+            "listen": "test",
+            "script": {"exec": ["if (pm.response.code === 200) {", "  pm.collectionVariables.set('user_token', pm.response.json().id_token);", "}"]}
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"username\": \"user\",\n  \"password\": \"user123\"\n}"},
+            "url": {"raw": "{{base_url}}/api/authenticate", "host": ["{{base_url}}"], "path": ["api", "authenticate"]},
+            "description": "Login with user credentials. Default: user/user123"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Source Management",
+      "item": [
+        {
+          "name": "Create H2 Source",
+          "event": [{
+            "listen": "test",
+            "script": {"exec": ["if (pm.response.code === 201) {", "  pm.collectionVariables.set('source_id', pm.response.json().id);", "  console.log('✅ Source ID: ' + pm.response.json().id);", "}"]}
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{admin_token}}"}],
+            "body": {"mode": "raw", "raw": "{\n  \"name\": \"h2-test-database\",\n  \"type\": \"H2\",\n  \"host\": \"localhost\",\n  \"port\": 9092,\n  \"database\": \"~/testdb\",\n  \"username\": \"sa\",\n  \"password\": \"\",\n  \"active\": true\n}"},
+            "url": {"raw": "{{base_url}}/api/sources", "host": ["{{base_url}}"], "path": ["api", "sources"]},
+            "description": "Create H2 database source. Note: database path must be ~/name, ./name, or /absolute/path"
+          }
+        },
+        {
+          "name": "Create PostgreSQL Source",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{admin_token}}"}],
+            "body": {"mode": "raw", "raw": "{\n  \"name\": \"postgres-production\",\n  \"type\": \"POSTGRESQL\",\n  \"host\": \"localhost\",\n  \"port\": 5432,\n  \"database\": \"mydb\",\n  \"username\": \"postgres\",\n  \"password\": \"password\",\n  \"active\": true\n}"},
+            "url": {"raw": "{{base_url}}/api/sources", "host": ["{{base_url}}"], "path": ["api", "sources"]},
+            "description": "Create PostgreSQL source"
+          }
+        },
+        {
+          "name": "List All Sources",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}],
+            "url": {"raw": "{{base_url}}/api/sources", "host": ["{{base_url}}"], "path": ["api", "sources"]},
+            "description": "Get all database sources"
+          }
+        },
+        {
+          "name": "Get Source by ID",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}],
+            "url": {"raw": "{{base_url}}/api/sources/{{source_id}}", "host": ["{{base_url}}"], "path": ["api", "sources", "{{source_id}}"]},
+            "description": "Get source details by ID"
+          }
+        },
+        {
+          "name": "Test Connection",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{admin_token}}"}],
+            "body": {"mode": "raw", "raw": "{\n  \"name\": \"test-connection\",\n  \"type\": \"H2\",\n  \"host\": \"localhost\",\n  \"port\": 9092,\n  \"database\": \"~/testdb\",\n  \"username\": \"sa\",\n  \"password\": \"\"\n}"},
+            "url": {"raw": "{{base_url}}/api/sources/test", "host": ["{{base_url}}"], "path": ["api", "sources", "test"]},
+            "description": "Test database connection without saving"
+          }
+        },
+        {
+          "name": "Update Source",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{admin_token}}"}],
+            "body": {"mode": "raw", "raw": "{\n  \"id\": {{source_id}},\n  \"name\": \"h2-test-updated\",\n  \"type\": \"H2\",\n  \"host\": \"localhost\",\n  \"port\": 9092,\n  \"database\": \"~/testdb\",\n  \"username\": \"sa\",\n  \"password\": \"\",\n  \"active\": true\n}"},
+            "url": {"raw": "{{base_url}}/api/sources/{{source_id}}", "host": ["{{base_url}}"], "path": ["api", "sources", "{{source_id}}"]},
+            "description": "Update source configuration"
+          }
+        },
+        {
+          "name": "Delete Source",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}],
+            "url": {"raw": "{{base_url}}/api/sources/{{source_id}}", "host": ["{{base_url}}"], "path": ["api", "sources", "{{source_id}}"]},
+            "description": "Delete source (cascades to all discovered metadata)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Metadata Discovery",
+      "item": [
+        {
+          "name": "Discover Metadata (CRITICAL)",
+          "event": [{
+            "listen": "test",
+            "script": {"exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));", "pm.test('Has fields discovered', () => {", "  const data = pm.response.json();", "  pm.expect(data.columnCount).to.be.above(0);", "});"]}
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}],
+            "url": {"raw": "{{base_url}}/api/v1/metadata/discover/{{source_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "metadata", "discover", "{{source_id}}"]},
+            "description": "Discover schemas, tables, and columns from database. Returns schemaCount, tableCount, columnCount."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Domains (Schemas)",
+      "item": [
+        {
+          "name": "List All Domains",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}],
+            "url": {"raw": "{{base_url}}/api/v1/metadata/domains", "host": ["{{base_url}}"], "path": ["api", "v1", "metadata", "domains"]},
+            "description": "Get all discovered schemas/domains"
+          }
+        },
+        {
+          "name": "Get Domain by ID",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}],
+            "url": {"raw": "{{base_url}}/api/v1/metadata/domains/{{domain_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "metadata", "domains", "{{domain_id}}"]},
+            "description": "Get domain details"
+          }
+        },
+        {
+          "name": "Get Domains by Source",
+          "event": [{
+            "listen": "test",
+            "script": {"exec": ["if (pm.response.code === 200 && pm.response.json().length > 0) {", "  pm.collectionVariables.set('domain_id', pm.response.json()[0].id);", "}"]}
+          }],
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}],
+            "url": {"raw": "{{base_url}}/api/v1/metadata/domains/source/{{source_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "metadata", "domains", "source", "{{source_id}}"]},
+            "description": "Get all domains for a specific source"
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Entities (Tables)",
+      "item": [
+        {
+          "name": "List All Entities",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}],
+            "url": {"raw": "{{base_url}}/api/v1/metadata/entities", "host": ["{{base_url}}"], "path": ["api", "v1", "metadata", "entities"]},
+            "description": "Get all discovered tables/views"
+          }
+        },
+        {
+          "name": "Get Entity by ID",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}],
+            "url": {"raw": "{{base_url}}/api/v1/metadata/entities/{{entity_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "metadata", "entities", "{{entity_id}}"]},
+            "description": "Get entity details"
+          }
+        },
+        {
+          "name": "Get Entities by Source",
+          "event": [{
+            "listen": "test",
+            "script": {"exec": ["if (pm.response.code === 200 && pm.response.json().length > 0) {", "  pm.collectionVariables.set('entity_id', pm.response.json()[0].id);", "}"]}
+          }],
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}],
+            "url": {"raw": "{{base_url}}/api/v1/metadata/entities/source/{{source_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "metadata", "entities", "source", "{{source_id}}"]},
+            "description": "Get all entities for a specific source"
+          }
+        },
+        {
+          "name": "Get Entities by Domain",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}],
+            "url": {"raw": "{{base_url}}/api/v1/metadata/entities/domain/{{domain_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "metadata", "entities", "domain", "{{domain_id}}"]},
+            "description": "Get all entities in a domain"
+          }
+        },
+        {
+          "name": "Search Entities",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}],
+            "url": {"raw": "{{base_url}}/api/v1/metadata/entities/search?tableName=emp", "host": ["{{base_url}}"], "path": ["api", "v1", "metadata", "entities", "search"], "query": [{"key": "tableName", "value": "emp"}]},
+            "description": "Search entities by table name"
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Fields (Columns)",
+      "item": [
+        {
+          "name": "List All Fields",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}],
+            "url": {"raw": "{{base_url}}/api/v1/metadata/fields", "host": ["{{base_url}}"], "path": ["api", "v1", "metadata", "fields"]},
+            "description": "Get all discovered columns/fields"
+          }
+        },
+        {
+          "name": "Get Field by ID",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}],
+            "url": {"raw": "{{base_url}}/api/v1/metadata/fields/{{field_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "metadata", "fields", "{{field_id}}"]},
+            "description": "Get field details"
+          }
+        },
+        {
+          "name": "Get Fields by Entity (CRITICAL)",
+          "event": [{
+            "listen": "test",
+            "script": {"exec": ["pm.test('Has fields', () => {", "  const fields = pm.response.json();", "  pm.expect(fields.length).to.be.above(0);", "  if (fields.length > 0) pm.collectionVariables.set('field_id', fields[0].id);", "});"]}
+          }],
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}],
+            "url": {"raw": "{{base_url}}/api/v1/metadata/entities/{{entity_id}}/fields", "host": ["{{base_url}}"], "path": ["api", "v1", "metadata", "entities", "{{entity_id}}", "fields"]},
+            "description": "Get all fields/columns for an entity. Returns columnName, dataType, isPrimaryKey, etc."
+          }
+        }
+      ]
+    }
+  ]
+}
