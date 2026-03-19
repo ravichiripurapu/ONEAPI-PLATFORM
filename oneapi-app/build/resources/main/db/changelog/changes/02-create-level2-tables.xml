@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Level 2: Tables with foreign keys to Level 1 only -->
+
+    <!-- Create role table -->
+    <changeSet id="02-create-role" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="role"/>
+            </not>
+        </preConditions>
+        <createTable tableName="role">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="description" type="VARCHAR(500)"/>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP"/>
+            <column name="created_by" type="VARCHAR(100)"/>
+            <column name="updated_by" type="VARCHAR(100)"/>
+        </createTable>
+        <createIndex indexName="idx_role_name" tableName="role">
+            <column name="name"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Create domain_info table -->
+    <changeSet id="02-create-domain-info" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="domain_info"/>
+            </not>
+        </preConditions>
+        <createTable tableName="domain_info">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="source_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="catalog_name" type="VARCHAR(255)"/>
+            <column name="schema_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="table_count" type="INT"/>
+            <column name="view_count" type="INT"/>
+            <column name="discovered_at" type="TIMESTAMP"/>
+            <column name="last_synced_at" type="TIMESTAMP"/>
+            <column name="created_date" type="TIMESTAMP"/>
+        </createTable>
+        <createIndex indexName="idx_domain_source" tableName="domain_info">
+            <column name="source_id"/>
+        </createIndex>
+        <createIndex indexName="idx_domain_schema" tableName="domain_info">
+            <column name="schema_name"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Add foreign key for domain_info -> source_info -->
+    <changeSet id="02-add-fk-domain-source" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_domain_source"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint
+            baseTableName="domain_info"
+            baseColumnNames="source_id"
+            constraintName="fk_domain_source"
+            referencedTableName="source_info"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+    </changeSet>
+
+</databaseChangeLog>

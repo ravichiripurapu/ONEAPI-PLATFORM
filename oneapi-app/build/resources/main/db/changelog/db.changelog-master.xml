@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- OneAPI Platform Database Changelog Master File -->
+    <!--
+        Migration Structure:
+        - Level 1: Base tables with NO foreign keys (User, SourceInfo)
+        - Level 2: First-level dependencies (Role, DomainInfo)
+        - Level 3: Second-level dependencies (EntityInfo, SavedQuery, Dashboard, UserPreferences)
+        - Level 4: Third-level dependencies (FieldInfo, Report, Widget, Schedule)
+        - Level 5: Join tables and audit (UserRole, Permission, AuditLog)
+    -->
+
+    <include file="changes/01-create-level1-base-tables.xml" relativeToChangelogFile="true"/>
+    <include file="changes/02-create-level2-tables.xml" relativeToChangelogFile="true"/>
+    <include file="changes/03-create-level3-tables.xml" relativeToChangelogFile="true"/>
+    <include file="changes/04-create-level4-tables.xml" relativeToChangelogFile="true"/>
+    <include file="changes/05-create-level5-tables.xml" relativeToChangelogFile="true"/>
+
+</databaseChangeLog>

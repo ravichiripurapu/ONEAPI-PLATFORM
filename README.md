@@ -5,18 +5,24 @@ A comprehensive API platform for unified data access, metadata discovery, and qu
 ## Quick Start
 
 ### Prerequisites
-- Java 21+
-- Maven 3.8+
+- Java 21 or higher
+- Gradle 8.5+ (wrapper included - no installation needed)
 - Port 8088 available
 
-### Run the Application
+### Build and Run
 
 ```bash
-cd oneapi-app
-mvn spring-boot:run
+# Option 1: Use the quick start script
+./QUICK_START.sh
+
+# Option 2: Manual commands
+./gradlew clean build -x test
+./gradlew :oneapi-app:bootRun
 ```
 
 Application will start on **http://localhost:8088**
+
+**See [GRADLE_COMMANDS.md](GRADLE_COMMANDS.md) for all Gradle commands**
 
 ### Default Credentials
 - **Username**: `admin`

@@ -1,0 +1,7 @@
+rootProject.name = 'oneapi-platform'
+
+include 'oneapi-sdk'
+include 'oneapi-h2-connector'
+include 'oneapi-postgres-connector'
+include 'oneapi-sqlserver-connector'
+include 'oneapi-app'

@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Level 3: Tables with foreign keys to Level 1 and Level 2 -->
+
+    <!-- Create entity_info table -->
+    <changeSet id="03-create-entity-info" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="entity_info"/>
+            </not>
+        </preConditions>
+        <createTable tableName="entity_info">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="domain_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="table_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="table_type" type="VARCHAR(50)"/>
+            <column name="estimated_row_count" type="BIGINT"/>
+            <column name="size_in_bytes" type="BIGINT"/>
+            <column name="table_comment" type="VARCHAR(1000)"/>
+            <column name="discovered_at" type="TIMESTAMP"/>
+            <column name="last_synced_at" type="TIMESTAMP"/>
+            <column name="created_date" type="TIMESTAMP"/>
+        </createTable>
+        <createIndex indexName="idx_data_entity_domain" tableName="entity_info">
+            <column name="domain_id"/>
+        </createIndex>
+        <createIndex indexName="idx_data_entity_name" tableName="entity_info">
+            <column name="table_name"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Add foreign key for entity_info -> domain_info -->
+    <changeSet id="03-add-fk-entity-domain" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_entity_domain"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint
+            baseTableName="entity_info"
+            baseColumnNames="domain_id"
+            constraintName="fk_entity_domain"
+            referencedTableName="domain_info"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+    </changeSet>
+
+    <!-- Create saved_query table -->
+    <changeSet id="03-create-saved-query" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="saved_query"/>
+            </not>
+        </preConditions>
+        <createTable tableName="saved_query">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(2000)"/>
+            <column name="query_text" type="VARCHAR(10000)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="source_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_public" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_favorite" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="execution_count" type="BIGINT"/>
+            <column name="last_executed_at" type="TIMESTAMP"/>
+            <column name="avg_execution_time_ms" type="BIGINT"/>
+            <column name="created_by" type="VARCHAR(50)"/>
+            <column name="created_date" type="TIMESTAMP"/>
+            <column name="last_modified_by" type="VARCHAR(50)"/>
+            <column name="last_modified_date" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Add foreign key for saved_query -> source_info -->
+    <changeSet id="03-add-fk-savedquery-source" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_savedquery_source"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint
+            baseTableName="saved_query"
+            baseColumnNames="source_id"
+            constraintName="fk_savedquery_source"
+            referencedTableName="source_info"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+    </changeSet>
+
+    <!-- Create dashboard table -->
+    <changeSet id="03-create-dashboard" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="dashboard"/>
+            </not>
+        </preConditions>
+        <createTable tableName="dashboard">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(2000)"/>
+            <column name="source_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_public" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="refresh_interval_seconds" type="INT"/>
+            <column name="layout" type="VARCHAR(5000)"/>
+            <column name="view_count" type="BIGINT"/>
+            <column name="last_viewed_at" type="TIMESTAMP"/>
+            <column name="created_by" type="VARCHAR(50)"/>
+            <column name="created_date" type="TIMESTAMP"/>
+            <column name="last_modified_by" type="VARCHAR(50)"/>
+            <column name="last_modified_date" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Add foreign key for dashboard -> source_info -->
+    <changeSet id="03-add-fk-dashboard-source" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_dashboard_source"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint
+            baseTableName="dashboard"
+            baseColumnNames="source_id"
+            constraintName="fk_dashboard_source"
+            referencedTableName="source_info"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+    </changeSet>
+
+    <!-- Create user_preferences table -->
+    <changeSet id="03-create-user-preferences" author="oneapi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="user_preferences"/>
+            </not>
+        </preConditions>
+        <createTable tableName="user_preferences">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="page_size" type="INT"/>
+            <column name="ttl_minutes" type="INT"/>
+            <column name="max_concurrent_sessions" type="INT"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>
