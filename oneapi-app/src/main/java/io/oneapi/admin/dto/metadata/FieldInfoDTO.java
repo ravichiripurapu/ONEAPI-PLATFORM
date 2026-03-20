@@ -34,7 +34,4 @@ public class FieldInfoDTO {
     private Integer ordinalPosition;
     private LocalDateTime discoveredAt;
     private LocalDateTime createdDate;
-
-    // Optional: Include JSON schema fragment for debugging/inspection
-    private String jsonSchemaFragment;
 }

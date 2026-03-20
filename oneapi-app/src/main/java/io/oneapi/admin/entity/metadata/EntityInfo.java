@@ -60,7 +60,8 @@ public class EntityInfo {
     @OneToMany(mappedBy = "dataEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<FieldInfo> fields = new HashSet<>();
 
-    @Column(name = "created_date")
+    @CreatedDate
+    @Column(name = "created_date", updatable = false)
     private LocalDateTime createdDate;
 
     public enum TableType {

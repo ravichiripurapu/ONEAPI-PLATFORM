@@ -7,7 +7,7 @@ import io.oneapi.admin.entity.SourceInfo;
 import io.oneapi.h2.source.H2Source;
 import io.oneapi.postgres.source.PostgresSource;
 import io.oneapi.sdk.base.Source;
-import io.oneapi.sqlserver.source.SqlServerSource;
+// import io.oneapi.sqlserver.source.SqlServerSource; // TODO: Implement SQL Server connector
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -45,7 +45,7 @@ public class ConnectorFactory {
         return switch (type) {
             case POSTGRESQL -> new PostgresSource();
             case H2 -> new H2Source();
-            case MSSQL -> new SqlServerSource();
+            case MSSQL -> throw new UnsupportedOperationException("SQL Server connector not yet implemented");
             case MYSQL -> throw new UnsupportedOperationException("MySQL connector not yet implemented");
             case ORACLE -> throw new UnsupportedOperationException("Oracle connector not yet implemented");
             case MARIADB -> throw new UnsupportedOperationException("MariaDB connector not yet implemented");

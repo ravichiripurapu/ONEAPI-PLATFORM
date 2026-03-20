@@ -17,14 +17,10 @@ public class DomainInfoDTO {
     private Long id;
     private Long datasourceId;
     private String connectionName;
-    private String catalogName;
     private String schemaName;
     private Integer tableCount;
     private Integer viewCount;
     private LocalDateTime discoveredAt;
     private LocalDateTime lastSyncedAt;
     private LocalDateTime createdDate;
-
-    // Optional: Include SDK catalog JSON for debugging/inspection
-    private String sdkCatalogJson;
 }

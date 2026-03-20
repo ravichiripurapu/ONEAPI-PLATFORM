@@ -88,7 +88,7 @@ public class ScheduleController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete schedule")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         scheduleService.delete(id);
         return ResponseEntity.noContent().build();

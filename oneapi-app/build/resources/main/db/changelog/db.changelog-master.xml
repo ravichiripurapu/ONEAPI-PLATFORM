@@ -20,5 +20,6 @@
     <include file="changes/03-create-level3-tables.xml" relativeToChangelogFile="true"/>
     <include file="changes/04-create-level4-tables.xml" relativeToChangelogFile="true"/>
     <include file="changes/05-create-level5-tables.xml" relativeToChangelogFile="true"/>
+    <include file="changes/10-insert-default-admin-user.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

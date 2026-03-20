@@ -1,0 +1,35 @@
+# Local Development Profile
+# Run with: --spring.profiles.active=local
+# Uses: H2 Database + Caffeine In-Memory Cache
+
+spring:
+  # Disable Redis auto-configuration for local profile
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+
+  datasource:
+    url: jdbc:h2:file:./data/oneapi;AUTO_SERVER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+oneapi:
+  query:
+    session:
+      # Use in-memory Caffeine cache for local development
+      cache-type: CAFFEINE
+      caffeine:
+        maximum-size: 1000
+        expire-after-write-minutes: 30

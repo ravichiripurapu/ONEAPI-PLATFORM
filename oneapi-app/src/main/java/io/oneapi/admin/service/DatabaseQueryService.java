@@ -177,55 +177,30 @@ public class DatabaseQueryService {
      * If datasourceId + tableName provided: Start new table query session
      * If datasourceId + sqlQuery provided: Start new SQL query session
      */
+    /**
+     * Execute a query (either new SQL query or continuation with sessionKey).
+     * Only supports SQL queries - table queries have been removed.
+     */
     public QueryResponse queryData(QueryRequest request, String userId) {
         if (request.isContinuation()) {
-            // Continue existing session (works for both table and SQL queries)
+            // Continue existing SQL query session
             return fetchNextPage(request.getSessionKey(), userId);
-        } else if (request.isTableQuery()) {
-            // Start new table query (existing functionality)
-            return startNewQuery(request, userId);
         } else if (request.isSqlQuery()) {
-            // NEW: Start new SQL query
+            // Start new SQL query
             return startNewSqlQuery(request, userId);
         } else {
             throw new IllegalArgumentException(
-                "Request must contain either sessionKey, (datasourceId + tableName), or (datasourceId + sqlQuery)"
+                "Request must contain either sessionKey or (datasourceId + sqlQuery). " +
+                "Table queries are not supported - use saved SQL queries instead."
             );
         }
     }
 
     /**
-     * Start a new query session.
-     */
-    private QueryResponse startNewQuery(QueryRequest request, String userId) {
-        log.info("Starting new query: user={}, connection={}, table={}",
-                userId, request.getDatasourceId(), request.getTableName());
-
-        // Get user preferences
-        int pageSize = userPreferencesService.getPageSize(userId);
-        int ttlMinutes = userPreferencesService.getTtlMinutes(userId);
-
-        // Create session
-        QuerySession session = sessionManager.createSession(
-                userId,
-                request.getDatasourceId(),
-                request.getTableName(),
-                pageSize,
-                ttlMinutes
-        );
-
-        session.setSchema(request.getSchema());
-        session.setFilters(request.getFilters());
-
-        // Fetch first page
-        return fetchPage(session, userId);
-    }
-
-    /**
-     * Fetch next page from existing session.
+     * Fetch next page from existing SQL query session.
      */
     private QueryResponse fetchNextPage(String sessionKey, String userId) {
-        log.debug("Fetching next page: user={}, sessionKey={}", userId, sessionKey);
+        log.info("Fetching next page: user={}, sessionKey={}", userId, sessionKey);
 
         // Get session
         QuerySession session = sessionManager.getSession(sessionKey);
@@ -235,180 +210,12 @@ public class DatabaseQueryService {
             throw new SecurityException("Session does not belong to user: " + userId);
         }
 
-        // Fetch page
-        return fetchPage(session, userId);
+        // All sessions are SQL query sessions now
+        return fetchSqlPage(session, userId);
     }
 
     /**
-     * Fetch a page of data using the session.
-     */
-    private QueryResponse fetchPage(QuerySession session, String userId) {
-        SourceInfo connection = connectionRepository.findById(session.getDatasourceId())
-                .orElseThrow(() -> new RuntimeException("Connection not found: " + session.getDatasourceId()));
-
-        List<Map<String, Object>> records = new ArrayList<>();
-        boolean hasMore = false;
-
-        if (session.isUseIteratorStrategy()) {
-            // Strategy 1: Use cached iterator (Caffeine)
-            hasMore = fetchWithIterator(session, connection, records);
-        } else {
-            // Strategy 2: Offset-based (Redis)
-            hasMore = fetchWithOffset(session, connection, records);
-        }
-
-        // Update session
-        session.incrementRequestCount();
-        session.addFetchedRecords(records.size());
-        session.setHasMore(hasMore);
-
-        int ttlMinutes = userPreferencesService.getTtlMinutes(userId);
-
-        if (!hasMore) {
-            // Last page - close session
-            sessionManager.closeSession(session.getSessionKey());
-        } else {
-            // Update session in cache
-            sessionManager.updateSession(session, ttlMinutes);
-        }
-
-        // Build response
-        QueryResponse.QueryMetadata metadata = new QueryResponse.QueryMetadata(
-                records.size(),
-                session.getTotalFetched(),
-                hasMore,
-                hasMore ? session.getExpiresAt() : null,
-                session.getPageSize(),
-                session.getRequestCount()
-        );
-
-        return new QueryResponse(
-                hasMore ? session.getSessionKey() : null,
-                records,
-                metadata
-        );
-    }
-
-    /**
-     * Fetch data using cached iterator (fast, Caffeine strategy).
-     */
-    private boolean fetchWithIterator(QuerySession session, SourceInfo connection,
-                                     List<Map<String, Object>> records) {
-        try {
-            // Get or create iterator
-            if (session.getIterator() == null || !session.isIteratorActive()) {
-                // Create new iterator
-                Source source = connectorFactory.createSource(connection);
-                JsonNode config = buildConfig(connection);
-
-                // Discover domain
-                Domain domain = source.discover(config);
-
-                // Filter to requested table
-                List<DataEntity> filteredEntities = domain.getEntities().stream()
-                        .filter(e -> e.getName().equalsIgnoreCase(session.getTableName()))
-                        .toList();
-
-                if (filteredEntities.isEmpty()) {
-                    throw new RuntimeException("Table not found: " + session.getTableName());
-                }
-
-                Domain filteredDomain = new Domain(filteredEntities);
-                State state = new State();
-
-                EntityRecordIterator<EntityRecord> iterator = source.read(config, filteredDomain, state);
-                session.setIterator(iterator);
-            }
-
-            // Fetch page
-            EntityRecordIterator<EntityRecord> iterator = session.getIterator();
-            int count = 0;
-            while (iterator.hasNext() && count < session.getPageSize()) {
-                EntityRecord record = iterator.next();
-                records.add(record.getData());
-                count++;
-            }
-
-            boolean hasMore = iterator.hasNext();
-
-            if (!hasMore) {
-                // Close iterator
-                session.closeIterator();
-            }
-
-            return hasMore;
-
-        } catch (Exception e) {
-            log.error("Error fetching with iterator", e);
-            session.closeIterator();
-            throw new RuntimeException("Failed to fetch data: " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Fetch data using offset (slower, Redis-compatible strategy).
-     */
-    private boolean fetchWithOffset(QuerySession session, SourceInfo connection,
-                                    List<Map<String, Object>> records) {
-        Source source = null;
-        try {
-            source = connectorFactory.createSource(connection);
-            JsonNode config = buildConfig(connection);
-
-            // Discover domain
-            Domain domain = source.discover(config);
-
-            // Filter to requested table
-            List<DataEntity> filteredEntities = domain.getEntities().stream()
-                    .filter(e -> e.getName().equalsIgnoreCase(session.getTableName()))
-                    .toList();
-
-            if (filteredEntities.isEmpty()) {
-                throw new RuntimeException("Table not found: " + session.getTableName());
-            }
-
-            Domain filteredDomain = new Domain(filteredEntities);
-            State state = new State();
-
-            // Create iterator and skip to offset
-            try (EntityRecordIterator<EntityRecord> iterator = source.read(config, filteredDomain, state)) {
-                // Skip to current offset
-                long skipped = 0;
-                while (iterator.hasNext() && skipped < session.getOffset()) {
-                    iterator.next();
-                    skipped++;
-                }
-
-                // Fetch page
-                int count = 0;
-                while (iterator.hasNext() && count < session.getPageSize()) {
-                    EntityRecord record = iterator.next();
-                    records.add(record.getData());
-                    count++;
-                }
-
-                // Update offset for next request
-                session.setOffset(session.getOffset() + count);
-
-                return iterator.hasNext();
-            }
-
-        } catch (Exception e) {
-            log.error("Error fetching with offset", e);
-            throw new RuntimeException("Failed to fetch data: " + e.getMessage(), e);
-        } finally {
-            if (source != null && source instanceof AutoCloseable) {
-                try {
-                    ((AutoCloseable) source).close();
-                } catch (Exception e) {
-                    log.warn("Error closing source", e);
-                }
-            }
-        }
-    }
-
-    /**
-     * NEW: Start a new SQL query session.
+     * Start a new SQL query session.
      */
     private QueryResponse startNewSqlQuery(QueryRequest request, String userId) {
         log.info("Starting new SQL query: user={}, connection={}, sql={}",
@@ -437,53 +244,82 @@ public class DatabaseQueryService {
     }
 
     /**
-     * NEW: Fetch a page of SQL query results.
+     * Fetch a page of SQL query results using OFFSET-based pagination.
+     * This approach is production-ready and works consistently across all cache types.
      */
     private QueryResponse fetchSqlPage(QuerySession session, String userId) {
+        log.info("fetchSqlPage (OFFSET strategy): sessionKey={}, requestCount={}, offset={}, totalFetched={}",
+                session.getSessionKey(), session.getRequestCount(), session.getOffset(), session.getTotalFetched());
+
         SourceInfo connection = connectionRepository.findById(session.getDatasourceId())
                 .orElseThrow(() -> new RuntimeException("Connection not found: " + session.getDatasourceId()));
 
         List<Map<String, Object>> records = new ArrayList<>();
         boolean hasMore = false;
 
+        Source source = null;
         try {
-            // Get or create SQL iterator
-            if (session.getSqlIterator() == null || !session.isSqlIteratorActive()) {
-                // Create JdbcDatabase from connector
-                Source source = connectorFactory.createSource(connection);
-                io.oneapi.sdk.database.JdbcDatabase database = getJdbcDatabase(source, connection);
+            // Create connector and database
+            source = connectorFactory.createSource(connection);
+            io.oneapi.sdk.database.JdbcDatabase database = getJdbcDatabase(source, connection);
 
-                // Create SQL iterator
-                io.oneapi.admin.model.SQLResultIterator iterator = new io.oneapi.admin.model.SQLResultIterator(
-                    database,
-                    session.getSqlQuery()
-                );
-                session.setSqlIterator(iterator);
-            }
+            // Build paginated SQL query with LIMIT and OFFSET
+            String originalSql = session.getSqlQuery().trim();
+            // Remove existing LIMIT/OFFSET if present (to avoid double pagination)
+            String baseSql = removeLimitOffset(originalSql);
 
-            // Fetch page
-            io.oneapi.admin.model.SQLResultIterator iterator = session.getSqlIterator();
-            int count = 0;
-            while (iterator.hasNext() && count < session.getPageSize()) {
-                records.add(iterator.next());
-                count++;
-            }
+            // Add LIMIT pageSize+1 to check if more records exist
+            // Add OFFSET to skip already fetched records
+            String paginatedSql = String.format("%s LIMIT %d OFFSET %d",
+                    baseSql, session.getPageSize() + 1, session.getOffset());
 
-            hasMore = iterator.hasNext();
+            log.info("Executing paginated SQL: {} | LIMIT={}, OFFSET={}",
+                    paginatedSql, session.getPageSize() + 1, session.getOffset());
 
-            if (!hasMore) {
-                // Close iterator
-                iterator.close();
-                session.setSqlIterator(null);
+            // Execute query
+            try (java.sql.Connection conn = database.getConnection();
+                 java.sql.Statement stmt = conn.createStatement();
+                 java.sql.ResultSet rs = stmt.executeQuery(paginatedSql)) {
+
+                // Fetch records - fetch up to pageSize+1 to check if more exist
+                int count = 0;
+                while (rs.next()) {
+                    if (count < session.getPageSize()) {
+                        // Add to results (only first pageSize records)
+                        Map<String, Object> record = new HashMap<>();
+                        int columnCount = rs.getMetaData().getColumnCount();
+                        for (int i = 1; i <= columnCount; i++) {
+                            String columnName = rs.getMetaData().getColumnName(i);
+                            record.put(columnName, rs.getObject(i));
+                        }
+                        records.add(record);
+                    } else {
+                        // We got the (pageSize+1)th record, so there are more pages
+                        hasMore = true;
+                        break;
+                    }
+                    count++;
+                }
+
+                log.info("Fetched {} records from DB, returned {} to user, hasMore={}",
+                        count, records.size(), hasMore);
             }
 
         } catch (Exception e) {
-            log.error("Error executing SQL query", e);
-            session.closeSqlIterator();
+            log.error("Error executing SQL query with offset", e);
             throw new RuntimeException("Failed to execute SQL query: " + e.getMessage(), e);
+        } finally {
+            if (source != null && source instanceof AutoCloseable) {
+                try {
+                    ((AutoCloseable) source).close();
+                } catch (Exception e) {
+                    log.warn("Error closing source", e);
+                }
+            }
         }
 
-        // Update session
+        // Update session offset for next request
+        session.setOffset(session.getOffset() + records.size());
         session.incrementRequestCount();
         session.addFetchedRecords(records.size());
         session.setHasMore(hasMore);
@@ -494,11 +330,11 @@ public class DatabaseQueryService {
             // Last page - close session
             sessionManager.closeSession(session.getSessionKey());
         } else {
-            // Update session in cache
+            // Update session in cache with new offset
             sessionManager.updateSession(session, ttlMinutes);
         }
 
-        // Build response (same format as table queries)
+        // Build response
         QueryResponse.QueryMetadata metadata = new QueryResponse.QueryMetadata(
                 records.size(),
                 session.getTotalFetched(),
@@ -508,11 +344,27 @@ public class DatabaseQueryService {
                 session.getRequestCount()
         );
 
+        String returnedSessionKey = hasMore ? session.getSessionKey() : null;
+        log.info("fetchSqlPage completed: offset={}, recordCount={}, totalFetched={}, hasMore={}, returnedSessionKey={}",
+                session.getOffset(), records.size(), session.getTotalFetched(), hasMore,
+                returnedSessionKey != null ? returnedSessionKey.substring(0, Math.min(8, returnedSessionKey.length())) + "..." : "null");
+
         return new QueryResponse(
-                hasMore ? session.getSessionKey() : null,
+                returnedSessionKey,
                 records,
                 metadata
         );
+    }
+
+    /**
+     * Remove LIMIT and OFFSET clauses from SQL query.
+     */
+    private String removeLimitOffset(String sql) {
+        // Simple regex to remove LIMIT and OFFSET (case insensitive)
+        // This is a basic implementation - production code might need more sophisticated parsing
+        String result = sql.replaceAll("(?i)\\s+LIMIT\\s+\\d+", "");
+        result = result.replaceAll("(?i)\\s+OFFSET\\s+\\d+", "");
+        return result.trim();
     }
 
     /**

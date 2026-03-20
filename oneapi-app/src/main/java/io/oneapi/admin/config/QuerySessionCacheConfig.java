@@ -49,6 +49,7 @@ public class QuerySessionCacheConfig {
                                 key, cause, session.getTotalFetched());
                         // Cleanup iterator resources
                         session.closeIterator();
+                        session.closeSqlIterator();
                     }
                 })
                 .recordStats()

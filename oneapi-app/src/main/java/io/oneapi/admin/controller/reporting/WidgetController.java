@@ -88,7 +88,7 @@ public class WidgetController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete a widget", description = "Deletes a widget")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         widgetService.delete(id);
         return ResponseEntity.noContent().build();

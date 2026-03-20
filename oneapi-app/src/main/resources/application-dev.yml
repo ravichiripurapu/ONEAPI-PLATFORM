@@ -1,0 +1,40 @@
+# Development Profile
+# Run with: --spring.profiles.active=dev
+# Uses: Your choice of Database + Your choice of Cache
+# Configure via environment variables
+
+spring:
+  datasource:
+    # Database configuration - override via environment variables
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/oneapi}
+    driver-class-name: ${DB_DRIVER:org.postgresql.Driver}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: ${SHOW_SQL:false}
+
+  # Redis configuration - only used if cache-type is REDIS or BOTH
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DB:0}
+
+oneapi:
+  query:
+    session:
+      # Cache type: CAFFEINE, REDIS, or BOTH
+      cache-type: ${CACHE_TYPE:REDIS}
+
+      # Caffeine configuration
+      caffeine:
+        maximum-size: ${CAFFEINE_MAX_SIZE:1000}
+        expire-after-write-minutes: ${CAFFEINE_EXPIRE_MINUTES:30}
+
+      # Redis configuration
+      redis:
+        key-prefix: ${REDIS_KEY_PREFIX:oneapi:session:}

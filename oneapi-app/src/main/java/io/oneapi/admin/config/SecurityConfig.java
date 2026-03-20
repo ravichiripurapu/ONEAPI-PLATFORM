@@ -4,7 +4,9 @@ import io.oneapi.admin.security.security.AuthoritiesConstants;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -15,8 +17,6 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
 import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
-import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 /**
  * Security configuration for OneAPI Application with JWT authentication.
@@ -34,85 +34,85 @@ import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 public class SecurityConfig {
 
     /**
-     * Configures the security filter chain with JWT authentication.
-     *
-     * Security Rules:
-     * - /api/authenticate - Public (login endpoint to get JWT)
-     * - /api/register - Public (user registration)
-     * - /actuator/** - Public (health checks, metrics)
-     * - /h2-console/** - Public (development only)
-     * - /swagger-ui/** - Public (API documentation)
-     * - /api-docs/** - Public (OpenAPI spec)
-     * - /graphiql - Public (GraphQL IDE)
-     * - /api/admin/** - Requires ADMIN role
-     * - All other /api/** endpoints require authentication
+     * Security filter chain for PUBLIC endpoints (no JWT required).
+     * This chain handles /api/authenticate and other public endpoints WITHOUT OAuth2 Resource Server.
+     * Order = 1 means this is checked FIRST.
      */
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, HandlerMappingIntrospector introspector,
-                                                    JwtAuthenticationConverter jwtAuthenticationConverter) throws Exception {
-        MvcRequestMatcher.Builder mvcMatcherBuilder = new MvcRequestMatcher.Builder(introspector);
-
+    @org.springframework.core.annotation.Order(1)
+    public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http) throws Exception {
         http
+            .securityMatcher(
+                "/api/authenticate",
+                "/api/register",
+                "/api/account/reset-password/init",
+                "/api/account/reset-password/finish",
+                "/actuator/**",
+                "/h2-console/**",
+                "/swagger-ui/**",
+                "/swagger-ui.html",
+                "/api-docs/**",
+                "/v3/api-docs/**",
+                "/graphiql",
+                "/graphiql/**",
+                "/error"
+            )
             .cors(Customizer.withDefaults())
-            .csrf(csrf -> csrf
-                // Disable CSRF for H2 console and API endpoints (using JWT tokens)
-                .ignoringRequestMatchers(
-                    mvcMatcherBuilder.pattern("/h2-console/**"),
-                    mvcMatcherBuilder.pattern("/api/**"),
-                    mvcMatcherBuilder.pattern("/graphql/**")
-                )
-            )
-            .authorizeHttpRequests(authz -> authz
-                // Public endpoints
-                .requestMatchers(
-                    mvcMatcherBuilder.pattern("/api/authenticate"),
-                    mvcMatcherBuilder.pattern("/api/register"),
-                    mvcMatcherBuilder.pattern("/api/account/reset-password/init"),
-                    mvcMatcherBuilder.pattern("/api/account/reset-password/finish")
-                ).permitAll()
-                .requestMatchers(
-                    mvcMatcherBuilder.pattern("/actuator/**"),
-                    mvcMatcherBuilder.pattern("/h2-console/**"),
-                    mvcMatcherBuilder.pattern("/swagger-ui/**"),
-                    mvcMatcherBuilder.pattern("/swagger-ui.html"),
-                    mvcMatcherBuilder.pattern("/api-docs/**"),
-                    mvcMatcherBuilder.pattern("/v3/api-docs/**"),
-                    mvcMatcherBuilder.pattern("/graphiql"),
-                    mvcMatcherBuilder.pattern("/graphiql/**"),
-                    mvcMatcherBuilder.pattern("/error")
-                ).permitAll()
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(authz -> authz.anyRequest().permitAll())
+            .headers(headers -> headers
+                .frameOptions(frameOptions -> frameOptions.sameOrigin())
+            );
 
-                // Admin endpoints - require ADMIN role
-                .requestMatchers(mvcMatcherBuilder.pattern("/api/admin/**")).hasAuthority(AuthoritiesConstants.ADMIN)
+        return http.build();
+    }
 
-                // User management - require ADMIN role
-                .requestMatchers(mvcMatcherBuilder.pattern(HttpMethod.POST, "/api/users")).hasAuthority(AuthoritiesConstants.ADMIN)
-                .requestMatchers(mvcMatcherBuilder.pattern(HttpMethod.PUT, "/api/users/**")).hasAuthority(AuthoritiesConstants.ADMIN)
-                .requestMatchers(mvcMatcherBuilder.pattern(HttpMethod.DELETE, "/api/users/**")).hasAuthority(AuthoritiesConstants.ADMIN)
-
-                // Permission management - require ADMIN role
-                .requestMatchers(mvcMatcherBuilder.pattern("/api/permissions/**")).hasAuthority(AuthoritiesConstants.ADMIN)
-
-                // All other API endpoints require authentication
-                .requestMatchers(mvcMatcherBuilder.pattern("/api/**")).authenticated()
-                .requestMatchers(mvcMatcherBuilder.pattern("/graphql")).authenticated()
-            )
-            // Stateless session management (JWT)
+    /**
+     * Security filter chain for PROTECTED endpoints (JWT required).
+     * This chain handles all other /api/** endpoints WITH OAuth2 Resource Server.
+     * Order = 2 means this is checked AFTER the public chain.
+     */
+    @Bean
+    @org.springframework.core.annotation.Order(2)
+    public SecurityFilterChain protectedSecurityFilterChain(HttpSecurity http,
+                                                             JwtAuthenticationConverter jwtAuthenticationConverter) throws Exception {
+        http
+            .securityMatcher(request -> {
+                String uri = request.getRequestURI();
+                // Match /api/** but exclude public endpoints
+                if (uri.equals("/api/authenticate") ||
+                    uri.equals("/api/register") ||
+                    uri.startsWith("/api/account/reset-password")) {
+                    return false;
+                }
+                return uri.startsWith("/api") || uri.equals("/graphql");
+            })
+            .cors(Customizer.withDefaults())
+            .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
-            // JWT authentication with custom authority extraction
+            .authorizeHttpRequests(authz -> authz
+                // Admin endpoints
+                .requestMatchers("/api/admin/**").hasAuthority(AuthoritiesConstants.ADMIN)
+
+                // User management
+                .requestMatchers(HttpMethod.POST, "/api/users").hasAuthority(AuthoritiesConstants.ADMIN)
+                .requestMatchers(HttpMethod.PUT, "/api/users/**").hasAuthority(AuthoritiesConstants.ADMIN)
+                .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasAuthority(AuthoritiesConstants.ADMIN)
+
+                // Permission management
+                .requestMatchers("/api/permissions/**").hasAuthority(AuthoritiesConstants.ADMIN)
+
+                // All other API endpoints require authentication
+                .anyRequest().authenticated()
+            )
             .oauth2ResourceServer(oauth2 -> oauth2
                 .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter))
             )
-            // Exception handling
             .exceptionHandling(exceptions -> exceptions
                 .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
                 .accessDeniedHandler(new BearerTokenAccessDeniedHandler())
-            )
-            // Frame options for H2 Console
-            .headers(headers -> headers
-                .frameOptions(frameOptions -> frameOptions.sameOrigin())
             );
 
         return http.build();
@@ -124,5 +124,13 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    /**
+     * AuthenticationManager bean required for username/password authentication.
+     */
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
     }
 }

@@ -57,6 +57,7 @@ public class DomainInfo {
     @OneToMany(mappedBy = "domain", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<EntityInfo> dataEntities = new HashSet<>();
 
-    @Column(name = "created_date")
+    @CreatedDate
+    @Column(name = "created_date", updatable = false)
     private LocalDateTime createdDate;
 }

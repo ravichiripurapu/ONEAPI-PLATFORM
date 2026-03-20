@@ -83,7 +83,6 @@ public class DomainUserDetailsService implements UserDetailsService {
                 user.getPasswordHash(),
                 user.getUserRoles().stream()
                     .map(userRole -> userRole.getRole().getName())
-                    .map(roleName -> "ROLE_" + roleName)
                     .map(SimpleGrantedAuthority::new)
                     .toList(),
                 user.getId()

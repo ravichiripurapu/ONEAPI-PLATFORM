@@ -28,7 +28,6 @@ public class MetadataMapper {
         dto.setId(entity.getId());
         dto.setDatasourceId(entity.getSource() != null ? entity.getSource().getId() : null);
         dto.setConnectionName(entity.getSource() != null ? entity.getSource().getName() : null);
-        dto.setCatalogName(entity.getCatalogName());
         dto.setSchemaName(entity.getSchemaName());
         dto.setTableCount(entity.getTableCount());
         dto.setViewCount(entity.getViewCount());
@@ -59,7 +58,6 @@ public class MetadataMapper {
         dto.setId(entity.getId());
         dto.setSchemaId(entity.getDomain() != null ? entity.getDomain().getId() : null);
         dto.setSchemaName(entity.getDomain() != null ? entity.getDomain().getSchemaName() : null);
-        dto.setCatalogName(entity.getDomain() != null ? entity.getDomain().getCatalogName() : null);
         dto.setTableName(entity.getTableName());
         dto.setTableType(entity.getTableType() != null ? entity.getTableType().name() : null);
         dto.setTableComment(entity.getTableComment());

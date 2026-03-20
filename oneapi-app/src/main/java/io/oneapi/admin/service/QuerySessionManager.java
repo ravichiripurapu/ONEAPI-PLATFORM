@@ -55,16 +55,14 @@ public class QuerySessionManager {
         session.setPageSize(pageSize);
         session.touch(ttlMinutes);
 
-        // Determine strategy based on cache type
-        QuerySessionProperties.CacheType cacheType = properties.getCacheType();
-        session.setUseIteratorStrategy(cacheType == QuerySessionProperties.CacheType.CAFFEINE);
+        // Use OFFSET strategy for all cache types (production-style, no iterator dependency)
+        session.setUseIteratorStrategy(false);
 
         // Store in appropriate cache
         storeSession(session, ttlMinutes);
 
-        log.info("Created query session: key={}, user={}, table={}, strategy={}, ttl={} min",
-                sessionKey, userId, tableName,
-                session.isUseIteratorStrategy() ? "ITERATOR" : "OFFSET", ttlMinutes);
+        log.info("Created query session: key={}, user={}, table={}, strategy=OFFSET, ttl={} min",
+                sessionKey, userId, tableName, ttlMinutes);
 
         return session;
     }

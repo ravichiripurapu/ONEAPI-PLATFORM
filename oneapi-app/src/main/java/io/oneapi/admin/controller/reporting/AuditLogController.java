@@ -26,14 +26,14 @@ public class AuditLogController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Get audit log by ID")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<AuditLogDTO> getById(@PathVariable Long id) {
         return auditLogService.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping
     @Operation(summary = "List all audit logs")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<List<AuditLogDTO>> getAll() {
         // Note: In production, this should be paginated to avoid memory issues
         // Consider adding pagination parameters
@@ -45,21 +45,21 @@ public class AuditLogController {
 
     @GetMapping("/user/{username}")
     @Operation(summary = "Get audit logs for specific user")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<List<AuditLogDTO>> getByUser(@PathVariable String username) {
         return ResponseEntity.ok(auditLogService.findByUser(username));
     }
 
     @GetMapping("/action/{action}")
     @Operation(summary = "Get audit logs by action type")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<List<AuditLogDTO>> getByAction(@PathVariable AuditLog.Action action) {
         return ResponseEntity.ok(auditLogService.findByAction(action));
     }
 
     @GetMapping("/entity/{entityType}/{entityId}")
     @Operation(summary = "Get audit logs for specific entity")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<List<AuditLogDTO>> getByEntity(
         @PathVariable String entityType,
         @PathVariable Long entityId
@@ -69,7 +69,7 @@ public class AuditLogController {
 
     @GetMapping("/search")
     @Operation(summary = "Search audit logs by date range and optional filters")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<List<AuditLogDTO>> search(
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end,

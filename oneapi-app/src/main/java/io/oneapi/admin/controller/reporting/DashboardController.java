@@ -96,7 +96,7 @@ public class DashboardController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete dashboard")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         dashboardService.delete(id);
         return ResponseEntity.noContent().build();

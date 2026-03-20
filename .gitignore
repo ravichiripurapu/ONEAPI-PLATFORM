@@ -40,10 +40,7 @@ out/
 Thumbs.db
 
 # Application-specific
-data/
-*.db
-*.h2.db
-*.trace.db
+
 
 # Logs
 logs/

@@ -77,6 +77,7 @@ public class FieldInfo {
     @Column(name = "discovered_at")
     private LocalDateTime discoveredAt;
 
-    @Column(name = "created_date")
+    @CreatedDate
+    @Column(name = "created_date", updatable = false)
     private LocalDateTime createdDate;
 }

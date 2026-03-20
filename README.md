@@ -26,7 +26,7 @@ Application will start on **http://localhost:8088**
 
 ### Default Credentials
 - **Username**: `admin`
-- **Password**: `admin123`
+- **Password**: `admin`
 
 ## API Documentation
 
@@ -153,12 +153,12 @@ POST   /api/authenticate                 # Login and get JWT token
 
 ### Data Sources
 ```
-GET    /api/v1/datasources               # List all datasources
-POST   /api/v1/datasources               # Create datasource
-GET    /api/v1/datasources/{id}          # Get datasource by ID
-PUT    /api/v1/datasources/{id}          # Update datasource
-DELETE /api/v1/datasources/{id}          # Delete datasource
-POST   /api/v1/datasources/{id}/test     # Test connection
+GET    /api/sources               # List all datasources
+POST   /api/sources               # Create datasource
+GET    /api/sources/{id}          # Get datasource by ID
+PUT    /api/sources/{id}          # Update datasource
+DELETE /api/sources/{id}          # Delete datasource
+POST   /api/sources/{id}/test     # Test connection
 ```
 
 ### Metadata Discovery
@@ -281,15 +281,15 @@ curl -X POST http://localhost:8088/api/authenticate \
 export TOKEN="your-jwt-token"
 
 # 2. Create datasource
-curl -X POST http://localhost:8088/api/v1/datasources \
+curl -X POST http://localhost:8088/api/sources \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "My H2 Database",
-    "databaseType": "H2",
+    "type": "H2",
     "host": "localhost",
     "port": 9092,
-    "databaseName": "testdb",
+    "database": "testdb",
     "username": "sa",
     "password": ""
   }'

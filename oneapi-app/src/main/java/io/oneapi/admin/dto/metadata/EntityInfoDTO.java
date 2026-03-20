@@ -17,7 +17,6 @@ public class EntityInfoDTO {
     private Long id;
     private Long schemaId;
     private String schemaName;
-    private String catalogName;
     private String tableName;
     private String tableType; // TABLE, VIEW, MATERIALIZED_VIEW, SYSTEM_TABLE
     private String tableComment;
@@ -26,7 +25,4 @@ public class EntityInfoDTO {
     private LocalDateTime discoveredAt;
     private LocalDateTime lastSyncedAt;
     private LocalDateTime createdDate;
-
-    // Optional: Include SDK entity JSON for debugging/inspection
-    private String sdkEntityJson;
 }

@@ -47,4 +47,9 @@ public interface UserRoleRepository extends JpaRepository<UserRole, Long> {
      */
     @Query("SELECT ur.role FROM UserRole ur WHERE ur.user.id = :userId")
     List<Role> findRolesByUserId(@Param("userId") Long userId);
+
+    /**
+     * Check if user already has this role assigned
+     */
+    boolean existsByUserIdAndRoleId(Long userId, Long roleId);
 }

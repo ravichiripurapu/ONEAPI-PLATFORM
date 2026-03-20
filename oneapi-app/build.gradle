@@ -53,6 +53,12 @@ dependencies {
     // Jackson
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+
     // Faker for test data generation
     implementation('com.github.javafaker:javafaker:1.0.2') {
         exclude group: 'org.yaml', module: 'snakeyaml'
