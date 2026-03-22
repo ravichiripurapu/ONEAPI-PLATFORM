@@ -27,9 +27,7 @@ public class ReportingMapper {
         dto.setConnectionName(entity.getSource() != null ? entity.getSource().getName() : null);
         dto.setIsPublic(entity.getIsPublic());
         dto.setIsFavorite(entity.getIsFavorite());
-        dto.setExecutionCount(entity.getExecutionCount());
-        dto.setLastExecutedAt(entity.getLastExecutedAt());
-        dto.setAvgExecutionTimeMs(entity.getAvgExecutionTimeMs());
+        // Execution statistics removed - use AuditLog for query execution history
         dto.setCreatedBy(entity.getCreatedBy());
         dto.setCreatedDate(entity.getCreatedDate());
         dto.setLastModifiedBy(entity.getLastModifiedBy());

@@ -1,0 +1,191 @@
+<div class="query-list">
+  <div class="list-header">
+    <h2>My Queries</h2>
+    <button mat-raised-button color="primary" (click)="navigateToQueryBuilder()">
+      <mat-icon>add</mat-icon>
+      New Query
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner></mat-spinner>
+      <p>Loading queries...</p>
+    </div>
+  } @else if (queries().length === 0) {
+    <mat-card class="empty-state">
+      <mat-card-content>
+        <mat-icon class="empty-icon">query_stats</mat-icon>
+        <h3>No Saved Queries</h3>
+        <p>You haven't created any queries yet. Use the Query Builder to create your first query.</p>
+        <button mat-raised-button color="primary" (click)="navigateToQueryBuilder()">
+          <mat-icon>add</mat-icon>
+          Create Query
+        </button>
+      </mat-card-content>
+    </mat-card>
+  } @else {
+    <div class="queries-container">
+      @for (query of queries(); track query.id) {
+        <mat-card class="query-card">
+          <mat-card-header>
+            <div class="query-header-content">
+              <div class="query-title-section">
+                <mat-card-title>
+                  <button
+                    mat-icon-button
+                    (click)="toggleFavorite(query)"
+                    [color]="query.isFavorite ? 'accent' : ''">
+                    <mat-icon>{{ query.isFavorite ? 'star' : 'star_border' }}</mat-icon>
+                  </button>
+                  {{ query.name }}
+                  @if (query.isPublic) {
+                    <mat-chip class="public-chip">Public</mat-chip>
+                  }
+                </mat-card-title>
+                @if (query.description) {
+                  <mat-card-subtitle>{{ query.description }}</mat-card-subtitle>
+                }
+              </div>
+              <div class="query-actions">
+                <button
+                  mat-raised-button
+                  color="primary"
+                  (click)="executeQuery(query)"
+                  [disabled]="getExecution(query.id!)?.loading">
+                  @if (getExecution(query.id!)?.loading) {
+                    <mat-spinner diameter="20"></mat-spinner>
+                  } @else {
+                    <mat-icon>play_arrow</mat-icon>
+                  }
+                  Execute
+                </button>
+                <button
+                  mat-icon-button
+                  [matMenuTriggerFor]="menu"
+                  aria-label="Query actions">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #menu="matMenu">
+                  <button mat-menu-item disabled>
+                    <mat-icon>edit</mat-icon>
+                    <span>Edit</span>
+                  </button>
+                  <button mat-menu-item (click)="deleteQuery(query)">
+                    <mat-icon>delete</mat-icon>
+                    <span>Delete</span>
+                  </button>
+                </mat-menu>
+              </div>
+            </div>
+          </mat-card-header>
+
+          <mat-card-content>
+            <div class="query-metadata">
+              <div class="metadata-item">
+                <mat-icon>storage</mat-icon>
+                <span>{{ query.connectionName || 'N/A' }}</span>
+              </div>
+              <div class="metadata-item">
+                <mat-icon>event</mat-icon>
+                <span>Created: {{ formatDate(query.createdDate) }}</span>
+              </div>
+              @if (query.lastExecutedAt) {
+                <div class="metadata-item">
+                  <mat-icon>schedule</mat-icon>
+                  <span>Last run: {{ formatDate(query.lastExecutedAt) }}</span>
+                </div>
+              }
+              @if (query.executionCount && query.executionCount > 0) {
+                <div class="metadata-item">
+                  <mat-icon>play_circle</mat-icon>
+                  <span>{{ query.executionCount }} executions</span>
+                </div>
+              }
+              @if (query.avgExecutionTimeMs) {
+                <div class="metadata-item">
+                  <mat-icon>timer</mat-icon>
+                  <span>Avg: {{ query.avgExecutionTimeMs }}ms</span>
+                </div>
+              }
+            </div>
+
+            <mat-expansion-panel class="sql-panel">
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <mat-icon>code</mat-icon>
+                  View SQL
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              <pre class="sql-preview">{{ query.queryText }}</pre>
+            </mat-expansion-panel>
+
+            @if (getExecution(query.id!); as execution) {
+              @if (execution.expanded) {
+                <div class="execution-results">
+                  <div class="results-header">
+                    <div class="results-info">
+                      <mat-icon>table_chart</mat-icon>
+                      <span>Results: {{ execution.totalFetched }} rows</span>
+                      @if (execution.hasMore) {
+                        <mat-chip class="has-more-chip">More available</mat-chip>
+                      }
+                    </div>
+                    <button
+                      mat-icon-button
+                      (click)="toggleExecution(query)"
+                      matTooltip="Collapse results">
+                      <mat-icon>expand_less</mat-icon>
+                    </button>
+                  </div>
+
+                  @if (execution.loading) {
+                    <div class="results-loading">
+                      <mat-spinner diameter="40"></mat-spinner>
+                      <p>Executing query...</p>
+                    </div>
+                  } @else if (execution.results.length > 0) {
+                    <div class="results-table-container">
+                      <table mat-table [dataSource]="execution.results" class="results-table">
+                        @for (column of execution.columns; track column) {
+                          <ng-container [matColumnDef]="column">
+                            <th mat-header-cell *matHeaderCellDef>{{ column }}</th>
+                            <td mat-cell *matCellDef="let row">{{ row[column] }}</td>
+                          </ng-container>
+                        }
+                        <tr mat-header-row *matHeaderRowDef="execution.columns; sticky: true"></tr>
+                        <tr mat-row *matRowDef="let row; columns: execution.columns;"></tr>
+                      </table>
+                    </div>
+
+                    @if (execution.hasMore) {
+                      <div class="load-more-section">
+                        <button
+                          mat-raised-button
+                          color="accent"
+                          (click)="loadMore(query)"
+                          [disabled]="execution.loading">
+                          @if (execution.loading) {
+                            <mat-spinner diameter="20"></mat-spinner>
+                          } @else {
+                            <mat-icon>expand_more</mat-icon>
+                          }
+                          Load More
+                        </button>
+                      </div>
+                    }
+                  } @else {
+                    <div class="empty-results">
+                      <mat-icon>info</mat-icon>
+                      <p>No results returned</p>
+                    </div>
+                  }
+                </div>
+              }
+            }
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  }
+</div>

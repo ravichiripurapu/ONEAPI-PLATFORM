@@ -34,4 +34,8 @@ public class FieldInfoDTO {
     private Integer ordinalPosition;
     private LocalDateTime discoveredAt;
     private LocalDateTime createdDate;
+
+    // AI-generated enrichment fields
+    private String businessName;
+    private String businessDescription;
 }

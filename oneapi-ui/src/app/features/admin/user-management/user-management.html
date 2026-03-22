@@ -1,0 +1,294 @@
+<div class="user-management">
+  @if (!showCreateForm()) {
+    <div class="header">
+      <h2>Users</h2>
+      <button mat-raised-button color="primary" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon>
+        Create User
+      </button>
+    </div>
+
+    @if (loading()) {
+      <div class="loading-container">
+        <mat-spinner></mat-spinner>
+      </div>
+    } @else {
+      <mat-card>
+        <mat-card-content>
+          <table mat-table [dataSource]="users()" class="users-table">
+            <ng-container matColumnDef="login">
+              <th mat-header-cell *matHeaderCellDef>Username</th>
+              <td mat-cell *matCellDef="let user">
+                <div class="user-name">
+                  <mat-icon>person</mat-icon>
+                  <span>{{ user.login }}</span>
+                </div>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="email">
+              <th mat-header-cell *matHeaderCellDef>Email</th>
+              <td mat-cell *matCellDef="let user">{{ user.email }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="firstName">
+              <th mat-header-cell *matHeaderCellDef>Name</th>
+              <td mat-cell *matCellDef="let user">
+                {{ user.firstName }} {{ user.lastName }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="activated">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let user">
+                <mat-icon [class.active-icon]="user.activated" [class.inactive-icon]="!user.activated">
+                  {{ user.activated ? 'check_circle' : 'cancel' }}
+                </mat-icon>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let user">
+                <button mat-icon-button (click)="openEditDialog(user)" matTooltip="Edit">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="deleteUser(user)" matTooltip="Delete">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="user-row"></tr>
+          </table>
+
+          @if (users().length === 0) {
+            <div class="empty-state">
+              <mat-icon>people</mat-icon>
+              <h3>No users found</h3>
+              <p>Create your first user to get started</p>
+              <button mat-raised-button color="primary" (click)="openCreateDialog()">
+                <mat-icon>add</mat-icon>
+                Create User
+              </button>
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+    }
+  } @else {
+    <div class="form-container">
+      <div class="form-header">
+        <h2>{{ editingUser() ? 'Edit' : 'Create' }} User</h2>
+        <button mat-icon-button (click)="cancelForm()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <mat-card>
+        <mat-card-content>
+          <mat-tab-group (selectedIndexChange)="onTabChange($event)">
+            <mat-tab>
+              <ng-template mat-tab-label>
+                <mat-icon class="tab-icon">person</mat-icon>
+                User Details
+              </ng-template>
+              <form class="user-form">
+                @if (!editingUser()) {
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="full-width">
+                      <mat-label>Username</mat-label>
+                      <input matInput [(ngModel)]="newUser.login" name="login" required>
+                      <mat-icon matPrefix>person</mat-icon>
+                    </mat-form-field>
+                  </div>
+
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="full-width">
+                      <mat-label>Password</mat-label>
+                      <input matInput type="password" [(ngModel)]="newUser.password" name="password" required>
+                      <mat-icon matPrefix>lock</mat-icon>
+                    </mat-form-field>
+                  </div>
+                }
+
+                <div class="form-row">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Email</mat-label>
+                    <input matInput type="email"
+                      [(ngModel)]="currentUserEmail"
+                      name="email" required>
+                    <mat-icon matPrefix>email</mat-icon>
+                  </mat-form-field>
+                </div>
+
+                <div class="form-row two-cols">
+                  <mat-form-field appearance="outline">
+                    <mat-label>First Name</mat-label>
+                    <input matInput
+                      [(ngModel)]="currentUserFirstName"
+                      name="firstName">
+                    <mat-icon matPrefix>badge</mat-icon>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline">
+                    <mat-label>Last Name</mat-label>
+                    <input matInput
+                      [(ngModel)]="currentUserLastName"
+                      name="lastName">
+                    <mat-icon matPrefix>badge</mat-icon>
+                  </mat-form-field>
+                </div>
+
+                <div class="form-row two-cols">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Language</mat-label>
+                    <mat-select
+                      [(ngModel)]="currentUserLangKey"
+                      name="langKey">
+                      <mat-option value="en">English</mat-option>
+                      <mat-option value="es">Spanish</mat-option>
+                      <mat-option value="fr">French</mat-option>
+                      <mat-option value="de">German</mat-option>
+                    </mat-select>
+                    <mat-icon matPrefix>language</mat-icon>
+                  </mat-form-field>
+
+                  <div class="checkbox-container">
+                    <mat-checkbox
+                      [(ngModel)]="currentUserActivated"
+                      name="activated">
+                      Active
+                    </mat-checkbox>
+                  </div>
+                </div>
+              </form>
+            </mat-tab>
+
+            <mat-tab>
+              <ng-template mat-tab-label>
+                <mat-icon class="tab-icon">badge</mat-icon>
+                Role Assignment
+              </ng-template>
+              <div class="roles-section">
+                <h3>Assign Roles</h3>
+                <p class="hint">Select the roles to assign to this user</p>
+                <div class="roles-list">
+                  @for (role of allRoles(); track role.id) {
+                    <div class="role-item" (click)="toggleRole(role.id)">
+                      <mat-checkbox [checked]="isRoleSelected(role.id)" (change)="toggleRole(role.id)">
+                        {{ role.name }}
+                      </mat-checkbox>
+                      @if (role.description) {
+                        <p class="role-description">{{ role.description }}</p>
+                      }
+                    </div>
+                  }
+                </div>
+                @if (selectedRoles.length > 0) {
+                  <div class="selected-roles">
+                    <h4>Selected Roles:</h4>
+                    <div class="chips-container">
+                      @for (roleId of selectedRoles; track roleId) {
+                        <mat-chip (removed)="toggleRole(roleId)">
+                          {{ getRoleName(roleId) }}
+                          <button matChipRemove>
+                            <mat-icon>cancel</mat-icon>
+                          </button>
+                        </mat-chip>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </mat-tab>
+
+            <mat-tab>
+              <ng-template mat-tab-label>
+                <mat-icon class="tab-icon">settings</mat-icon>
+                Preferences
+              </ng-template>
+              <div class="preferences-section">
+                @if (!editingUser()) {
+                  <div class="info-message">
+                    <mat-icon>info</mat-icon>
+                    <p>User preferences can only be set after the user is created.</p>
+                  </div>
+                } @else {
+                  @if (preferencesLoading()) {
+                    <div class="loading-preferences">
+                      <mat-spinner diameter="40"></mat-spinner>
+                      <p>Loading preferences...</p>
+                    </div>
+                  } @else {
+                    <h3>User Preferences</h3>
+                    <p class="hint">Configure user-specific settings and behavior</p>
+
+                    <form class="preferences-form">
+                      <div class="preference-card">
+                        <div class="preference-header">
+                          <mat-icon>table_rows</mat-icon>
+                          <div class="preference-title">
+                            <h4>Page Size</h4>
+                            <p>Number of items to display per page in tables</p>
+                          </div>
+                        </div>
+                        <mat-form-field appearance="outline" class="preference-input">
+                          <mat-label>Items per page</mat-label>
+                          <input matInput type="number" [(ngModel)]="userPreferences.pageSize"
+                                 name="pageSize" min="10" max="100" step="10">
+                          <mat-hint>Recommended: 20-50 items</mat-hint>
+                        </mat-form-field>
+                      </div>
+
+                      <div class="preference-card">
+                        <div class="preference-header">
+                          <mat-icon>schedule</mat-icon>
+                          <div class="preference-title">
+                            <h4>Session TTL</h4>
+                            <p>Time to live for user sessions in minutes</p>
+                          </div>
+                        </div>
+                        <mat-form-field appearance="outline" class="preference-input">
+                          <mat-label>TTL (minutes)</mat-label>
+                          <input matInput type="number" [(ngModel)]="userPreferences.ttlMinutes"
+                                 name="ttlMinutes" min="5" max="1440">
+                          <mat-hint>Range: 5 - 1440 minutes (24 hours)</mat-hint>
+                        </mat-form-field>
+                      </div>
+
+                      <div class="preference-card">
+                        <div class="preference-header">
+                          <mat-icon>devices</mat-icon>
+                          <div class="preference-title">
+                            <h4>Concurrent Sessions</h4>
+                            <p>Maximum number of simultaneous active sessions</p>
+                          </div>
+                        </div>
+                        <mat-form-field appearance="outline" class="preference-input">
+                          <mat-label>Max sessions</mat-label>
+                          <input matInput type="number" [(ngModel)]="userPreferences.maxConcurrentSessions"
+                                 name="maxSessions" min="1" max="10">
+                          <mat-hint>Range: 1 - 10 sessions</mat-hint>
+                        </mat-form-field>
+                      </div>
+                    </form>
+                  }
+                }
+              </div>
+            </mat-tab>
+          </mat-tab-group>
+
+          <div class="form-actions">
+            <button mat-button (click)="cancelForm()" type="button">Cancel</button>
+            <button mat-raised-button color="primary" (click)="saveUser()" type="button">
+              <mat-icon>save</mat-icon>
+              {{ editingUser() ? 'Update' : 'Create' }} User
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  }
+</div>

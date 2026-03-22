@@ -37,9 +37,8 @@ public class SavedQueryDTO {
     private Boolean isPublic = false;
     private Boolean isFavorite = false;
 
-    private Long executionCount = 0L;
-    private LocalDateTime lastExecutedAt;
-    private Long avgExecutionTimeMs;
+    // Execution statistics are tracked in AuditLog, not stored here
+    // Use AuditLogRepository or QueryExecutionService to get execution metrics
 
     private String createdBy;
     private LocalDateTime createdDate;

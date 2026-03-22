@@ -1,0 +1,116 @@
+/* You can add global styles to this file, and also import other style files */
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+
+:root {
+  --primary-color: #5d5fef;
+  --primary-dark: #4a4cd6;
+  --primary-light: #7a7cf5;
+  --secondary-color: #00d4bd;
+  --accent-color: #ff6b6b;
+  --success-color: #51cf66;
+  --warning-color: #ffa94d;
+  --danger-color: #ff6b6b;
+  --dark-color: #2b2d42;
+  --light-gray: #f8f9fa;
+  --medium-gray: #e9ecef;
+  --border-color: #dee2e6;
+  --text-primary: #2b2d42;
+  --text-secondary: #6c757d;
+  --sidebar-bg: #2b2d42;
+  --sidebar-text: #adb5bd;
+  --sidebar-active: #5d5fef;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: var(--text-primary);
+  background-color: var(--light-gray);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+h1 { font-size: 2rem; }
+h2 { font-size: 1.5rem; }
+h3 { font-size: 1.25rem; }
+
+/* Material overrides */
+.mat-mdc-card {
+  border-radius: 12px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08) !important;
+  border: 1px solid var(--border-color);
+}
+
+.mat-mdc-button {
+  border-radius: 8px !important;
+  text-transform: none !important;
+  font-weight: 500 !important;
+}
+
+.mat-mdc-raised-button {
+  border-radius: 8px !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+}
+
+/* Table styles */
+.mat-mdc-table {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.mat-mdc-header-row {
+  background-color: var(--light-gray);
+}
+
+th.mat-mdc-header-cell {
+  font-weight: 600;
+  color: var(--text-primary);
+  border-bottom: 2px solid var(--border-color);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+td.mat-mdc-cell {
+  border-bottom: 1px solid var(--medium-gray);
+}
+
+.mat-mdc-row:hover {
+  background-color: var(--light-gray);
+}
+
+/* Icons */
+mat-icon {
+  font-family: 'Material Icons' !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--light-gray);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--medium-gray);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-color);
+}

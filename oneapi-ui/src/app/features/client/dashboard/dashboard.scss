@@ -1,0 +1,314 @@
+.client-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  height: 64px;
+  background: white !important;
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  color: var(--text-primary) !important;
+
+  span:first-child {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    letter-spacing: -0.5px;
+  }
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.toolbar {
+  button[mat-button] {
+    color: var(--text-primary) !important;
+    font-weight: 500;
+    padding: 0 16px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+
+    mat-icon {
+      margin-right: 8px;
+      color: var(--primary-color);
+    }
+
+    &:hover {
+      background-color: rgba(124, 58, 237, 0.1);
+    }
+  }
+}
+
+.sidenav-container {
+  flex: 1;
+  margin-top: 64px;
+  height: calc(100vh - 64px);
+}
+
+.sidenav {
+  width: 240px;
+  background-color: #ffffff !important;
+  border-right: 1px solid var(--border-color);
+  box-shadow: 2px 0 8px rgba(0,0,0,0.02);
+
+  .nav-menu {
+    padding: 24px 0;
+
+    .nav-item {
+      height: 44px;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      margin: 2px 12px;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      color: #64748b;
+      user-select: none;
+      border-radius: 8px;
+      position: relative;
+
+      &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 3px;
+        height: 0;
+        background: var(--primary-color);
+        border-radius: 0 3px 3px 0;
+        transition: height 0.25s ease;
+      }
+
+      &:hover {
+        background-color: #f1f5f9;
+        color: var(--text-primary);
+        
+        mat-icon {
+          color: var(--primary-color);
+        }
+      }
+
+      &.active {
+        background-color: #ede9fe;
+        color: var(--primary-color);
+        font-weight: 600;
+
+        &::before {
+          height: 28px;
+        }
+
+        mat-icon {
+          color: var(--primary-color);
+        }
+      }
+
+      mat-icon {
+        margin-right: 12px;
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        min-width: 20px;
+        flex-shrink: 0;
+        color: inherit;
+      }
+
+      span {
+        font-size: 0.875rem;
+        font-weight: 500;
+        letter-spacing: -0.2px;
+        line-height: 1;
+      }
+    }
+
+    mat-divider {
+      margin: 16px 12px;
+      background-color: var(--border-color);
+      opacity: 0.6;
+    }
+  }
+}
+
+.content {
+  padding: 0;
+  background-color: #fafbfc;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100%;
+}
+
+.home-view {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px 32px 80px;
+
+  h1 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+    letter-spacing: -0.5px;
+  }
+
+  .subtitle {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    margin-bottom: 40px;
+    font-weight: 400;
+  }
+
+  .feature-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+
+    .feature-card {
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 12px;
+      background: white;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      overflow: hidden;
+
+      &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        border-color: var(--primary-light);
+      }
+
+      mat-card-header {
+        padding: 32px 28px 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        mat-icon {
+          font-size: 48px;
+          width: 48px;
+          height: 48px;
+          margin-bottom: 0;
+          color: var(--primary-color);
+        }
+      }
+
+      mat-card-content {
+        padding: 20px 28px;
+        text-align: center;
+
+        h3 {
+          font-size: 1.125rem;
+          font-weight: 600;
+          margin: 0 0 8px 0;
+          color: var(--text-primary);
+          letter-spacing: -0.3px;
+        }
+
+        p {
+          font-size: 0.875rem;
+          color: var(--text-secondary);
+          line-height: 1.5;
+          margin: 0;
+        }
+      }
+
+      mat-card-actions {
+        padding: 0 28px 28px;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+
+        button {
+          font-weight: 600;
+          font-size: 0.875rem;
+          padding: 10px 20px;
+          background: var(--primary-color);
+          color: white;
+          border: none;
+          border-radius: 6px;
+          transition: all 0.2s ease;
+
+          &:hover {
+            background: var(--primary-dark);
+            box-shadow: 0 4px 12px rgba(93, 95, 239, 0.25);
+          }
+        }
+      }
+    }
+  }
+}
+
+.dashboards-view {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px 32px 80px;
+
+  .coming-soon-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 500px;
+
+    .coming-soon-card {
+      max-width: 600px;
+      width: 100%;
+      border-radius: 16px;
+      background: white;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+
+      mat-card-content {
+        text-align: center;
+        padding: 60px 40px;
+
+        .coming-soon-icon {
+          font-size: 96px;
+          width: 96px;
+          height: 96px;
+          margin: 0 auto 24px;
+          color: var(--primary-color);
+          opacity: 0.7;
+        }
+
+        h2 {
+          font-size: 2rem;
+          font-weight: 700;
+          margin: 0 0 16px 0;
+          color: var(--text-primary);
+          letter-spacing: -0.5px;
+        }
+
+        .coming-soon-badge {
+          display: inline-block;
+          background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+          color: white;
+          padding: 8px 20px;
+          border-radius: 20px;
+          font-size: 0.875rem;
+          font-weight: 600;
+          margin-bottom: 24px;
+          letter-spacing: 0.5px;
+          text-transform: uppercase;
+        }
+
+        .coming-soon-description {
+          font-size: 1rem;
+          color: var(--text-secondary);
+          line-height: 1.6;
+          margin: 0;
+          max-width: 480px;
+          margin: 0 auto;
+        }
+      }
+    }
+  }
+}

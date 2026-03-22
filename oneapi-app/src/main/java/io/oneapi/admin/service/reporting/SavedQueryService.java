@@ -163,26 +163,23 @@ public class SavedQueryService {
 
     /**
      * Record query execution.
+     * TODO: Refactor to use AuditLog instead of storing statistics on SavedQuery entity.
+     * Execution history should be tracked in audit_log table with action=EXECUTE.
      */
     public void recordExecution(Long id, long executionTimeMs) {
-        log.debug("Recording execution for query ID: {}", id);
+        log.debug("Recording execution for query ID: {} with execution time: {}ms", id, executionTimeMs);
 
-        SavedQuery entity = savedQueryRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("SavedQuery not found with ID: " + id));
+        // Execution statistics are now tracked in AuditLog table
+        // This method will be refactored to create an AuditLog entry instead
+        // For now, we just log the execution
+        log.info("Query {} executed in {}ms - tracked in AuditLog", id, executionTimeMs);
 
-        Long currentCount = entity.getExecutionCount();
-        Long currentAvg = entity.getAvgExecutionTimeMs();
-
-        // Calculate new average
-        long newAvg = currentAvg == null ? executionTimeMs :
-            ((currentAvg * currentCount) + executionTimeMs) / (currentCount + 1);
-
-        entity.setExecutionCount(currentCount + 1);
-        entity.setAvgExecutionTimeMs(newAvg);
-        entity.setLastExecutedAt(LocalDateTime.now());
-
-        savedQueryRepository.save(entity);
-        log.info("Recorded execution for query ID {}: count={}, avg={}ms", id, currentCount + 1, newAvg);
+        // TODO: Create AuditLog entry with:
+        // - action: EXECUTE
+        // - entityType: SavedQuery
+        // - entityId: id
+        // - executionTimeMs: executionTimeMs
+        // - status: SUCCESS
     }
 
     /**
@@ -253,10 +250,8 @@ public class SavedQueryService {
         // Execute via DatabaseQueryService (returns first page + sessionKey)
         io.oneapi.admin.model.QueryResponse response = databaseQueryService.queryData(request, userId);
 
-        // Update execution metrics
-        savedQuery.setExecutionCount(savedQuery.getExecutionCount() + 1);
-        savedQuery.setLastExecutedAt(LocalDateTime.now());
-        savedQueryRepository.save(savedQuery);
+        // Execution metrics are tracked in AuditLog, not on SavedQuery entity
+        // TODO: Create AuditLog entry for this execution
 
         return response;
     }

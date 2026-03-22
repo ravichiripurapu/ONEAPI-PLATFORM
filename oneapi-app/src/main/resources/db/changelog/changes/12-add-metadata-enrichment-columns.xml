@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="12-add-entity-enrichment-columns" author="oneapi">
+        <comment>Add AI-generated metadata enrichment columns to entity_info table</comment>
+
+        <!-- Business metadata columns -->
+        <addColumn tableName="entity_info">
+            <column name="business_name" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <addColumn tableName="entity_info">
+            <column name="business_description" type="varchar(1000)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <addColumn tableName="entity_info">
+            <column name="table_aliases" type="varchar(500)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <addColumn tableName="entity_info">
+            <column name="table_keywords" type="varchar(500)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <addColumn tableName="entity_info">
+            <column name="business_category" type="varchar(100)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <!-- Metadata tracking columns -->
+        <addColumn tableName="entity_info">
+            <column name="metadata_confidence" type="decimal(3,2)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <addColumn tableName="entity_info">
+            <column name="metadata_generated_by" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <addColumn tableName="entity_info">
+            <column name="metadata_generated_at" type="timestamp">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <addColumn tableName="entity_info">
+            <column name="metadata_reviewed_by" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <addColumn tableName="entity_info">
+            <column name="metadata_reviewed_at" type="timestamp">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <!-- Create index on business_name for faster searches -->
+        <createIndex tableName="entity_info" indexName="idx_entity_business_name">
+            <column name="business_name"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="12-add-field-enrichment-columns" author="oneapi">
+        <comment>Add AI-generated metadata enrichment columns to field_info table</comment>
+
+        <!-- Business metadata columns -->
+        <addColumn tableName="field_info">
+            <column name="business_name" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <addColumn tableName="field_info">
+            <column name="business_description" type="varchar(500)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <addColumn tableName="field_info">
+            <column name="column_aliases" type="varchar(500)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <addColumn tableName="field_info">
+            <column name="data_classification" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <addColumn tableName="field_info">
+            <column name="sample_values" type="varchar(500)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <addColumn tableName="field_info">
+            <column name="value_pattern" type="varchar(200)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <!-- Create index on business_name for faster searches -->
+        <createIndex tableName="field_info" indexName="idx_field_business_name">
+            <column name="business_name"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

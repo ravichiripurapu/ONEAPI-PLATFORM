@@ -1,6 +1,6 @@
 #FileLock
-#Fri Mar 20 15:38:25 CDT 2026
-hostName=macbookpro
-id=19d0cf87fe7a92336cc72207e8cabc975530f1d0cc8
+#Sun Mar 22 12:10:24 CDT 2026
+hostName=macbookpro.attlocal.net
+id=19d1686c5121ca43a1bb68f27460ac8b8b83215c43e
 method=file
-server=192.168.1.154\:51788
+server=192.168.1.154\:53700

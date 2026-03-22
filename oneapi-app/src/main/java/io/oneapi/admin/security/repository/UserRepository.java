@@ -8,6 +8,8 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -24,12 +26,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findOneByEmailIgnoreCase(String email);
     Optional<User> findOneByLogin(String login);
 
-    @EntityGraph(attributePaths = {"userRoles", "userRoles.role"})
-    @Cacheable(cacheNames = USERS_BY_LOGIN_CACHE, unless = "#result == null")
+    // Using default fetch to avoid Hibernate 6.3.1 EntityGraph bug
     Optional<User> findOneWithRolesByLogin(String login);
 
-    @EntityGraph(attributePaths = {"userRoles", "userRoles.role"})
-    @Cacheable(cacheNames = USERS_BY_EMAIL_CACHE, unless = "#result == null")
+    // Using default fetch to avoid Hibernate 6.3.1 EntityGraph bug
     Optional<User> findOneWithRolesByEmailIgnoreCase(String email);
 
     Page<User> findAllByIdNotNullAndActivatedIsTrue(Pageable pageable);

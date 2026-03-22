@@ -1,0 +1,347 @@
+<div class="role-management">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-content">
+      <div class="title-section">
+        <mat-icon class="header-icon">admin_panel_settings</mat-icon>
+        <div>
+          <h2>Role & Permission Management</h2>
+          <p class="subtitle">Manage roles and configure hierarchical access permissions</p>
+        </div>
+      </div>
+      <button mat-raised-button color="primary" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon>
+        Create Role
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Container with Resizable Panels -->
+  <div class="role-container">
+    <!-- Left Panel: Roles List -->
+    <div class="roles-panel" [style.width.%]="rolePanelWidth()">
+      <mat-card class="panel-card">
+        <mat-card-header>
+          <mat-card-title>Roles ({{ roles().length }})</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          @if (loading()) {
+            <div class="loading-container">
+              <mat-spinner diameter="40"></mat-spinner>
+              <p>Loading roles...</p>
+            </div>
+          } @else if (roles().length === 0) {
+            <div class="empty-state">
+              <mat-icon>verified_user</mat-icon>
+              <h3>No Roles</h3>
+              <p>Create your first role to get started</p>
+            </div>
+          } @else {
+            <mat-selection-list [multiple]="false" class="roles-list">
+              @for (role of roles(); track role.id) {
+                <mat-list-option [value]="role"
+                                 [selected]="selectedRole()?.id === role.id"
+                                 (click)="selectRole(role)">
+                  <div class="role-item">
+                    <div class="role-info">
+                      <mat-icon matListItemIcon>verified_user</mat-icon>
+                      <div class="role-details">
+                        <h4>{{ role.name }}</h4>
+                        <p>{{ role.description || 'No description' }}</p>
+                      </div>
+                    </div>
+                    <div class="role-actions">
+                      <button mat-icon-button
+                              (click)="openEditDialog(role); $event.stopPropagation()"
+                              matTooltip="Edit Role">
+                        <mat-icon>edit</mat-icon>
+                      </button>
+                      <button mat-icon-button
+                              color="warn"
+                              (click)="deleteRole(role); $event.stopPropagation()"
+                              matTooltip="Delete Role">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </div>
+                  </div>
+                </mat-list-option>
+              }
+            </mat-selection-list>
+          }
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Resizable Splitter -->
+    <div class="splitter"
+         (mousedown)="startResize($event)"
+         [class.resizing]="isResizing()">
+      <div class="splitter-line"></div>
+    </div>
+
+    <!-- Right Panel: Role Details & Permissions -->
+    <div class="details-panel" [style.width.%]="100 - rolePanelWidth()">
+      @if (selectedRole()) {
+        <mat-card class="panel-card">
+          <!-- Role Details Header -->
+          <mat-card-header class="role-header">
+            <mat-icon mat-card-avatar class="role-avatar">verified_user</mat-icon>
+            <mat-card-title>{{ selectedRole()!.name }}</mat-card-title>
+            <mat-card-subtitle>{{ selectedRole()!.description || 'No description' }}</mat-card-subtitle>
+          </mat-card-header>
+
+          <mat-divider></mat-divider>
+
+          <!-- Permissions Section -->
+          <mat-card-content>
+            <div class="permissions-section">
+              <div class="section-header">
+                <h3>
+                  <mat-icon>lock</mat-icon>
+                  Permissions
+                  @if (permissions().length > 0) {
+                    <mat-chip class="count-chip">{{ permissions().length }}</mat-chip>
+                  }
+                </h3>
+                <button mat-raised-button
+                        color="accent"
+                        (click)="openPermissionForm()">
+                  <mat-icon>add</mat-icon>
+                  Add Permission
+                </button>
+              </div>
+
+              @if (permissionsLoading()) {
+                <div class="loading-container">
+                  <mat-spinner diameter="40"></mat-spinner>
+                  <p>Loading permissions...</p>
+                </div>
+              } @else if (permissions().length === 0) {
+                <div class="empty-permissions">
+                  <mat-icon>lock_open</mat-icon>
+                  <h4>No Permissions</h4>
+                  <p>Add permissions to control access to sources, schemas, tables, and fields</p>
+                  <button mat-raised-button color="accent" (click)="openPermissionForm()">
+                    <mat-icon>add</mat-icon>
+                    Add First Permission
+                  </button>
+                </div>
+              } @else {
+                <div class="permissions-list">
+                  @for (permission of permissions(); track permission.id) {
+                    <mat-card class="permission-card" [class]="'level-' + permission.level">
+                      <div class="permission-content">
+                        <div class="permission-info">
+                          <div class="permission-header">
+                            <mat-icon [color]="getLevelColor(permission.level)">
+                              {{ getPermissionLevelIcon(permission.level) }}
+                            </mat-icon>
+                            <mat-chip [color]="getLevelColor(permission.level)" class="level-chip">
+                              {{ getPermissionLevelLabel(permission.level) }}
+                            </mat-chip>
+                          </div>
+                          <div class="permission-scope">
+                            <strong>{{ getPermissionScope(permission) }}</strong>
+                          </div>
+                          <div class="permission-meta">
+                            <span class="permission-type">
+                              <mat-icon>visibility</mat-icon>
+                              {{ permission.permissionType }}
+                            </span>
+                            @if (permission.createdAt) {
+                              <span class="permission-date">
+                                <mat-icon>schedule</mat-icon>
+                                {{ permission.createdAt | date:'short' }}
+                              </span>
+                            }
+                          </div>
+                        </div>
+                        <div class="permission-actions">
+                          <button mat-icon-button
+                                  color="warn"
+                                  (click)="deletePermission(permission)"
+                                  matTooltip="Remove Permission">
+                            <mat-icon>delete</mat-icon>
+                          </button>
+                        </div>
+                      </div>
+                    </mat-card>
+                  }
+                </div>
+              }
+            </div>
+          </mat-card-content>
+        </mat-card>
+      } @else {
+        <div class="no-selection">
+          <mat-icon>touch_app</mat-icon>
+          <h3>Select a Role</h3>
+          <p>Choose a role from the list to view and manage its permissions</p>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Create/Edit Role Dialog -->
+  @if (showCreateForm()) {
+    <div class="dialog-overlay" (click)="cancelForm()">
+      <mat-card class="dialog-card" (click)="$event.stopPropagation()">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>{{ editingRole() ? 'edit' : 'add' }}</mat-icon>
+            {{ editingRole() ? 'Edit' : 'Create' }} Role
+          </mat-card-title>
+          <button mat-icon-button class="close-button" (click)="cancelForm()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-card-header>
+
+        <mat-card-content>
+          <form class="role-form">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Role Name</mat-label>
+              <input matInput
+                     [(ngModel)]="currentRoleName"
+                     name="name"
+                     required
+                     placeholder="e.g., ROLE_ANALYST">
+              <mat-icon matPrefix>label</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Description</mat-label>
+              <textarea matInput
+                        rows="3"
+                        [(ngModel)]="currentRoleDescription"
+                        name="description"
+                        placeholder="Describe the purpose of this role"></textarea>
+              <mat-icon matPrefix>description</mat-icon>
+            </mat-form-field>
+          </form>
+        </mat-card-content>
+
+        <mat-card-actions align="end">
+          <button mat-button (click)="cancelForm()">Cancel</button>
+          <button mat-raised-button color="primary" (click)="saveRole()">
+            <mat-icon>save</mat-icon>
+            {{ editingRole() ? 'Update' : 'Create' }}
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  }
+
+  <!-- Add Permission Dialog -->
+  @if (showPermissionForm()) {
+    <div class="dialog-overlay" (click)="cancelPermissionForm()">
+      <mat-card class="dialog-card permission-dialog" (click)="$event.stopPropagation()">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>add</mat-icon>
+            Add Permission to {{ selectedRole()!.name }}
+          </mat-card-title>
+          <button mat-icon-button class="close-button" (click)="cancelPermissionForm()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-card-header>
+
+        <mat-card-content>
+          <form class="permission-form">
+            <!-- Permission Level -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Permission Level</mat-label>
+              <mat-select [(ngModel)]="permissionLevel" name="level" required>
+                <mat-option [value]="1">
+                  <mat-icon>storage</mat-icon>
+                  Source Level
+                </mat-option>
+                <mat-option [value]="2">
+                  <mat-icon>schema</mat-icon>
+                  Schema Level
+                </mat-option>
+                <mat-option [value]="3">
+                  <mat-icon>table_chart</mat-icon>
+                  Table Level
+                </mat-option>
+                <mat-option [value]="4">
+                  <mat-icon>view_column</mat-icon>
+                  Field Level
+                </mat-option>
+              </mat-select>
+              <mat-hint>Choose the granularity of access control</mat-hint>
+            </mat-form-field>
+
+            <!-- Source Selection -->
+            @if (permissionLevel() >= 1) {
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Source</mat-label>
+                <mat-select [ngModel]="selectedSource()?.id"
+                            (ngModelChange)="onSourceChange($event)"
+                            name="source"
+                            required>
+                  @for (source of sources(); track source.id) {
+                    <mat-option [value]="source.id">{{ source.name }}</mat-option>
+                  }
+                </mat-select>
+                <mat-icon matPrefix>storage</mat-icon>
+              </mat-form-field>
+            }
+
+            <!-- Schema Selection -->
+            @if (permissionLevel() >= 2 && selectedSource()) {
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Schema</mat-label>
+                <mat-select [ngModel]="selectedDomain()?.id"
+                            (ngModelChange)="onDomainChange($event)"
+                            name="domain"
+                            required>
+                  @for (domain of domains(); track domain.id) {
+                    <mat-option [value]="domain.id">{{ domain.schemaName }}</mat-option>
+                  }
+                </mat-select>
+                <mat-icon matPrefix>schema</mat-icon>
+              </mat-form-field>
+            }
+
+            <!-- Table Selection -->
+            @if (permissionLevel() >= 3 && selectedDomain()) {
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Table</mat-label>
+                <mat-select [ngModel]="selectedEntity()?.id"
+                            (ngModelChange)="onEntityChange($event)"
+                            name="entity"
+                            required>
+                  @for (entity of entities(); track entity.id) {
+                    <mat-option [value]="entity.id">{{ entity.tableName }}</mat-option>
+                  }
+                </mat-select>
+                <mat-icon matPrefix>table_chart</mat-icon>
+              </mat-form-field>
+            }
+
+            <!-- Field Selection -->
+            @if (permissionLevel() >= 4 && selectedEntity()) {
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Field</mat-label>
+                <mat-select [(ngModel)]="selectedField" name="field" required>
+                  @for (field of fields(); track field.id) {
+                    <mat-option [value]="field">{{ field.columnName }}</mat-option>
+                  }
+                </mat-select>
+                <mat-icon matPrefix>view_column</mat-icon>
+              </mat-form-field>
+            }
+          </form>
+        </mat-card-content>
+
+        <mat-card-actions align="end">
+          <button mat-button (click)="cancelPermissionForm()">Cancel</button>
+          <button mat-raised-button color="primary" (click)="addPermission()">
+            <mat-icon>add</mat-icon>
+            Add Permission
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  }
+</div>

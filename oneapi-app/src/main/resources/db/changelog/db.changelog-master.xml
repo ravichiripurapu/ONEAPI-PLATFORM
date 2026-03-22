@@ -21,5 +21,7 @@
     <include file="changes/04-create-level4-tables.xml" relativeToChangelogFile="true"/>
     <include file="changes/05-create-level5-tables.xml" relativeToChangelogFile="true"/>
     <include file="changes/10-insert-default-admin-user.xml" relativeToChangelogFile="true"/>
+    <include file="changes/12-add-metadata-enrichment-columns.xml" relativeToChangelogFile="true"/>
+    <include file="changes/13-remove-saved-query-execution-stats.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

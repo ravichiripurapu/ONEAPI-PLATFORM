@@ -25,6 +25,7 @@ import java.util.List;
 public class SavedQueryController {
 
     private final SavedQueryService queryService;
+    private final io.oneapi.admin.service.reporting.NaturalLanguageQueryService naturalLanguageQueryService;
 
     @PostMapping
     @Operation(summary = "Create a new saved query", description = "Creates a new saved SQL query")
@@ -194,5 +195,49 @@ public class SavedQueryController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         queryService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // ========== NEW: Natural Language to SQL Endpoint ==========
+
+    @PostMapping("/natural-language")
+    @Operation(summary = "Convert natural language to SQL",
+               description = "Uses LLM to convert a plain English question into SQL. " +
+                            "Provides the generated SQL, explanation, and confidence score. " +
+                            "Example: 'Show me the total revenue by customer for the last 30 days'")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<io.oneapi.admin.dto.reporting.NaturalLanguageQueryResponse> convertNaturalLanguageToSQL(
+            @Valid @RequestBody io.oneapi.admin.dto.reporting.NaturalLanguageQueryRequest request) {
+
+        io.oneapi.admin.dto.reporting.NaturalLanguageQueryResponse response =
+            naturalLanguageQueryService.convertQuestionToSQL(request);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/explain-sql")
+    @Operation(summary = "Explain SQL query",
+               description = "Converts a SQL query into a natural language explanation")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<String> explainSQL(
+            @RequestParam Long datasourceId,
+            @RequestBody String sql) {
+
+        String explanation = naturalLanguageQueryService.explainSQL(sql, datasourceId);
+        return ResponseEntity.ok(explanation);
+    }
+
+    @GetMapping("/natural-language/status")
+    @Operation(summary = "Check NL query service status",
+               description = "Checks if the natural language query service is available")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<java.util.Map<String, Object>> checkNLServiceStatus() {
+        boolean isAvailable = naturalLanguageQueryService.isServiceAvailable();
+
+        return ResponseEntity.ok(java.util.Map.of(
+            "available", isAvailable,
+            "message", isAvailable ?
+                "Natural language query service is available" :
+                "Natural language query service is not configured or unavailable"
+        ));
     }
 }

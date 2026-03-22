@@ -25,4 +25,8 @@ public class EntityInfoDTO {
     private LocalDateTime discoveredAt;
     private LocalDateTime lastSyncedAt;
     private LocalDateTime createdDate;
+
+    // AI-generated enrichment fields
+    private String businessName;
+    private String businessDescription;
 }

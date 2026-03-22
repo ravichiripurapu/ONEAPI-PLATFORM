@@ -63,6 +63,29 @@ springdoc:
     enabled: true
 
 oneapi:
+  # LLM Configuration for Natural Language to SQL
+  llm:
+    # Provider: mock (default), gemini, openai
+    provider: openai
+    # Gemini configuration (only used if provider=gemini)
+    gemini:
+      api-key: ${GOOGLE_API_KEY:}
+      model: gemini-1.5-flash
+      temperature: 0.1
+    # OpenAI configuration (only used if provider=openai)
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      model: gpt-4o-mini
+      temperature: 0.1
+
+  # Metadata Enrichment Configuration
+  metadata:
+    enrichment:
+      # Enable/disable automatic metadata enrichment
+      enabled: true
+      # Number of tables to process in each batch
+      batch-size: 10
+
   query:
     session:
       # Cache type: CAFFEINE (in-memory), REDIS (distributed), or BOTH (L1+L2)

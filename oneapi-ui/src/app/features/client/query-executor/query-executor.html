@@ -1,0 +1,475 @@
+<div class="query-executor-container">
+  <!-- Header with Datasource Selection -->
+  <mat-card class="header-card">
+    <mat-card-content>
+      <div class="header-content">
+        <div class="datasource-selector">
+          <mat-icon>storage</mat-icon>
+          <mat-form-field appearance="outline" class="datasource-field">
+            <mat-label>Select Datasource</mat-label>
+            <mat-select [(ngModel)]="selectedSource" (selectionChange)="onSourceChange()">
+              <mat-option *ngFor="let source of sources()" [value]="source">
+                {{ source.name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="header-actions">
+          <button mat-raised-button color="primary" (click)="executeQuery()" [disabled]="!generatedSQL() || loading()">
+            <mat-icon>play_arrow</mat-icon>
+            Execute Query
+          </button>
+          <button mat-stroked-button (click)="showSaveDialog.set(true)" [disabled]="!generatedSQL()">
+            <mat-icon>save</mat-icon>
+            Save
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Main Tabs -->
+  <mat-card class="tabs-card">
+    <mat-tab-group [(selectedIndex)]="selectedTabIndex" animationDuration="200ms">
+
+      <!-- TAB 1: VISUAL QUERY BUILDER -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">construction</mat-icon>
+          Query Builder
+        </ng-template>
+
+        <div class="tab-content visual-builder">
+
+          <!-- Table Selection Panel -->
+          <div class="builder-section">
+            <h3 class="section-title">
+              <mat-icon>table_chart</mat-icon>
+              1. Pick your starting data
+            </h3>
+
+            <div class="table-selector-row">
+              <mat-form-field appearance="outline" class="selector-field">
+                <mat-label>Schema / Domain</mat-label>
+                <mat-select [(ngModel)]="selectedDomain" (selectionChange)="onDomainChange()" [disabled]="!selectedSource()">
+                  <mat-option *ngFor="let domain of availableDomains()" [value]="domain">
+                    {{ domain.schemaName }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="selector-field">
+                <mat-label>Table / Entity</mat-label>
+                <mat-select [(ngModel)]="selectedEntityToAdd" [disabled]="!selectedDomain()">
+                  <mat-option *ngFor="let entity of availableEntities()" [value]="entity">
+                    {{ entity.tableName }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <button mat-raised-button color="primary" (click)="addTable()" [disabled]="!selectedEntityToAdd()">
+                <mat-icon>add</mat-icon>
+                Add Table
+              </button>
+            </div>
+          </div>
+
+          <!-- Selected Tables with Fields -->
+          <div class="builder-section" *ngIf="visualQuery().tables.length > 0">
+            <h3 class="section-title">
+              <mat-icon>view_list</mat-icon>
+              2. Select columns
+            </h3>
+
+            <mat-expansion-panel *ngFor="let tableWithFields of visualQuery().tables; let i = index"
+                                 [expanded]="tableWithFields.expanded"
+                                 class="table-panel">
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <mat-icon>table_chart</mat-icon>
+                  <span class="table-name">{{ tableWithFields.table.tableName }}</span>
+                  <mat-chip class="table-alias" *ngIf="tableWithFields.table.alias">
+                    {{ tableWithFields.table.alias }}
+                  </mat-chip>
+                </mat-panel-title>
+                <mat-panel-description>
+                  {{ tableWithFields.fields.length }} fields
+                  <button mat-icon-button color="warn" (click)="removeTable(i); $event.stopPropagation()"
+                          matTooltip="Remove table">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </mat-panel-description>
+              </mat-expansion-panel-header>
+
+              <div class="fields-grid">
+                <button mat-stroked-button *ngFor="let field of tableWithFields.fields"
+                        (click)="addColumn(tableWithFields, field)"
+                        class="field-button">
+                  <mat-icon class="field-icon">{{ field.isPrimaryKey ? 'key' : (field.isForeignKey ? 'link' : 'label') }}</mat-icon>
+                  {{ field.columnName }}
+                  <span class="field-type">{{ field.dataType }}</span>
+                </button>
+              </div>
+            </mat-expansion-panel>
+          </div>
+
+          <!-- Selected Columns -->
+          <div class="builder-section" *ngIf="visualQuery().columns.length > 0">
+            <h3 class="section-title">
+              <mat-icon>view_column</mat-icon>
+              Selected Columns
+            </h3>
+
+            <div class="selected-columns">
+              <mat-chip-set>
+                <mat-chip *ngFor="let column of visualQuery().columns; let i = index"
+                          [removable]="true"
+                          (removed)="removeColumn(i)">
+                  <span class="column-chip-content">
+                    <strong>{{ column.table }}</strong>.{{ column.column }}
+                    <select class="aggregate-select"
+                            [(ngModel)]="column.aggregate"
+                            (change)="updateColumnAggregate(i, column.aggregate || null)">
+                      <option [ngValue]="null">No aggregate</option>
+                      <option *ngFor="let agg of aggregateFunctions" [ngValue]="agg">{{ agg }}</option>
+                    </select>
+                  </span>
+                  <button matChipRemove>
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                </mat-chip>
+              </mat-chip-set>
+            </div>
+          </div>
+
+          <!-- Joins Section -->
+          <div class="builder-section" *ngIf="visualQuery().tables.length >= 2">
+            <h3 class="section-title">
+              <mat-icon>compare_arrows</mat-icon>
+              3. Join data
+              <button mat-icon-button color="primary" (click)="addJoin()" matTooltip="Add join">
+                <mat-icon>add_circle</mat-icon>
+              </button>
+            </h3>
+
+            <div class="joins-container">
+              <mat-card *ngFor="let join of visualQuery().joins; let i = index" class="join-card">
+                <mat-card-content>
+                  <div class="join-config">
+                    <div class="join-row">
+                      <mat-form-field appearance="outline" class="small-field">
+                        <mat-label>Source Table</mat-label>
+                        <mat-select [(ngModel)]="join.sourceTable" (selectionChange)="updateJoin()">
+                          <mat-option *ngFor="let t of visualQuery().tables"
+                                     [value]="t.table.alias || t.table.tableName">
+                            {{ t.table.alias || t.table.tableName }}
+                          </mat-option>
+                        </mat-select>
+                      </mat-form-field>
+
+                      <mat-form-field appearance="outline" class="small-field">
+                        <mat-label>Column</mat-label>
+                        <mat-select [(ngModel)]="join.sourceColumn" (selectionChange)="updateJoin()">
+                          <mat-option *ngFor="let field of getFieldsForTable(join.sourceTable)"
+                                     [value]="field.columnName">
+                            {{ field.columnName }}
+                          </mat-option>
+                        </mat-select>
+                      </mat-form-field>
+
+                      <mat-form-field appearance="outline" class="join-type-field">
+                        <mat-label>Join Type</mat-label>
+                        <mat-select [(ngModel)]="join.joinType" (selectionChange)="updateJoin()">
+                          <mat-option *ngFor="let type of joinTypes" [value]="type">
+                            {{ type }}
+                          </mat-option>
+                        </mat-select>
+                      </mat-form-field>
+
+                      <mat-form-field appearance="outline" class="small-field">
+                        <mat-label>Target Table</mat-label>
+                        <mat-select [(ngModel)]="join.targetTable" (selectionChange)="updateJoin()">
+                          <mat-option *ngFor="let t of visualQuery().tables"
+                                     [value]="t.table.alias || t.table.tableName">
+                            {{ t.table.alias || t.table.tableName }}
+                          </mat-option>
+                        </mat-select>
+                      </mat-form-field>
+
+                      <mat-form-field appearance="outline" class="small-field">
+                        <mat-label>Column</mat-label>
+                        <mat-select [(ngModel)]="join.targetColumn" (selectionChange)="updateJoin()">
+                          <mat-option *ngFor="let field of getFieldsForTable(join.targetTable)"
+                                     [value]="field.columnName">
+                            {{ field.columnName }}
+                          </mat-option>
+                        </mat-select>
+                      </mat-form-field>
+
+                      <button mat-icon-button color="warn" (click)="removeJoin(i)" matTooltip="Remove join">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          </div>
+
+          <!-- Filters Section -->
+          <div class="builder-section">
+            <h3 class="section-title">
+              <mat-icon>filter_list</mat-icon>
+              4. Filter
+              <button mat-icon-button color="primary" (click)="addFilter()"
+                      [disabled]="visualQuery().tables.length === 0"
+                      matTooltip="Add filter">
+                <mat-icon>add_circle</mat-icon>
+              </button>
+            </h3>
+
+            <div class="filters-container" *ngIf="visualQuery().filters.length > 0">
+              <mat-card *ngFor="let filter of visualQuery().filters; let i = index" class="filter-card">
+                <mat-card-content>
+                  <div class="filter-row">
+                    <mat-form-field appearance="outline" class="small-field">
+                      <mat-label>Table</mat-label>
+                      <mat-select [(ngModel)]="filter.table" (selectionChange)="updateFilter()">
+                        <mat-option *ngFor="let t of visualQuery().tables"
+                                   [value]="t.table.alias || t.table.tableName">
+                          {{ t.table.alias || t.table.tableName }}
+                        </mat-option>
+                      </mat-select>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="small-field">
+                      <mat-label>Field</mat-label>
+                      <mat-select [(ngModel)]="filter.field" (selectionChange)="updateFilter()">
+                        <mat-option *ngFor="let field of getFieldsForTable(filter.table)"
+                                   [value]="field.columnName">
+                          {{ field.columnName }}
+                        </mat-option>
+                      </mat-select>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="small-field">
+                      <mat-label>Operator</mat-label>
+                      <mat-select [(ngModel)]="filter.operator" (selectionChange)="updateFilter()">
+                        <mat-option *ngFor="let op of operators" [value]="op">
+                          {{ op }}
+                        </mat-option>
+                      </mat-select>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="value-field"
+                                   *ngIf="filter.operator !== 'IS NULL' && filter.operator !== 'IS NOT NULL'">
+                      <mat-label>Value</mat-label>
+                      <input matInput [(ngModel)]="filter.value" (ngModelChange)="updateFilter()">
+                    </mat-form-field>
+
+                    <button mat-icon-button color="warn" (click)="removeFilter(i)" matTooltip="Remove filter">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          </div>
+
+          <!-- Limit -->
+          <div class="builder-section">
+            <h3 class="section-title">
+              <mat-icon>speed</mat-icon>
+              5. Limit results
+            </h3>
+
+            <mat-form-field appearance="outline" class="limit-field">
+              <mat-label>Limit (optional)</mat-label>
+              <input matInput type="number" [(ngModel)]="visualQuery().limit" (ngModelChange)="generateSQLFromVisual()">
+            </mat-form-field>
+          </div>
+
+        </div>
+      </mat-tab>
+
+      <!-- TAB 2: SQL QUERY -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">code</mat-icon>
+          Write SQL
+        </ng-template>
+
+        <div class="tab-content sql-editor">
+          <div class="sql-header">
+            <h3>Write or paste your SQL query</h3>
+            <button mat-stroked-button (click)="formatSQL()">
+              <mat-icon>auto_fix_high</mat-icon>
+              Format SQL
+            </button>
+          </div>
+
+          <mat-form-field appearance="outline" class="sql-textarea">
+            <mat-label>SQL Query</mat-label>
+            <textarea matInput
+                      [(ngModel)]="sqlQuery().sqlText"
+                      (ngModelChange)="generatedSQL.set(sqlQuery().sqlText)"
+                      rows="15"
+                      placeholder="SELECT * FROM schema.table&#10;WHERE condition = 'value'&#10;LIMIT 100;"></textarea>
+          </mat-form-field>
+
+          <div class="sql-help">
+            <mat-icon>info</mat-icon>
+            <span>Write your SQL query directly. Use the selected datasource for execution.</span>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- TAB 3: ASK QUESTION (Natural Language) -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">psychology</mat-icon>
+          Ask Question
+        </ng-template>
+
+        <div class="tab-content nl-query">
+          <div class="nl-header">
+            <h3>Ask a question in plain English</h3>
+            <p class="nl-subtitle">Our AI will translate your question into SQL</p>
+          </div>
+
+          <mat-form-field appearance="outline" class="question-field">
+            <mat-label>Ask your question...</mat-label>
+            <textarea matInput
+                      [(ngModel)]="nlQuery().question"
+                      rows="4"
+                      placeholder="e.g., Show me the total revenue by customer for the last 30 days"></textarea>
+          </mat-form-field>
+
+          <div class="nl-actions">
+            <button mat-raised-button color="primary" (click)="askQuestion()"
+                    [disabled]="!nlQuery().question || loading()">
+              <mat-icon>auto_awesome</mat-icon>
+              Generate SQL
+            </button>
+          </div>
+
+          <!-- Generated SQL Display -->
+          <div class="generated-result" *ngIf="nlQuery().generatedSQL">
+            <mat-card class="result-card">
+              <mat-card-header>
+                <mat-card-title>
+                  <mat-icon>check_circle</mat-icon>
+                  Generated SQL
+                  <mat-chip [style.background-color]="nlQuery().confidence > 0.7 ? '#4caf50' : '#ff9800'">
+                    {{ (nlQuery().confidence * 100).toFixed(0) }}% confidence
+                  </mat-chip>
+                </mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="explanation">
+                  <strong>Explanation:</strong>
+                  <p>{{ nlQuery().explanation }}</p>
+                </div>
+
+                <div class="generated-sql">
+                  <pre>{{ nlQuery().generatedSQL }}</pre>
+                </div>
+
+                <div class="result-actions">
+                  <button mat-raised-button color="primary" (click)="useGeneratedSQL()">
+                    <mat-icon>edit</mat-icon>
+                    Edit in SQL Tab
+                  </button>
+                  <button mat-stroked-button (click)="executeQuery()">
+                    <mat-icon>play_arrow</mat-icon>
+                    Execute
+                  </button>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+      </mat-tab>
+
+    </mat-tab-group>
+  </mat-card>
+
+  <!-- Generated SQL Preview -->
+  <mat-card class="sql-preview-card" *ngIf="generatedSQL()">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>code</mat-icon>
+        Generated SQL
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <pre class="sql-code">{{ generatedSQL() }}</pre>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Query Results -->
+  <mat-card class="results-card" *ngIf="showResults()">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>table_view</mat-icon>
+        Query Results
+        <mat-chip>{{ queryResults().length }} rows</mat-chip>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="table-container">
+        <table mat-table [dataSource]="queryResults()" class="results-table">
+          <ng-container *ngFor="let column of resultColumns()" [matColumnDef]="column">
+            <th mat-header-cell *matHeaderCellDef>{{ column }}</th>
+            <td mat-cell *matCellDef="let row">{{ row[column] }}</td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="resultColumns()"></tr>
+          <tr mat-row *matRowDef="let row; columns: resultColumns();"></tr>
+        </table>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Loading Spinner -->
+  <div class="loading-overlay" *ngIf="loading()">
+    <mat-spinner></mat-spinner>
+    <p>Processing query...</p>
+  </div>
+
+  <!-- Save Dialog -->
+  <div class="save-dialog" *ngIf="showSaveDialog()">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Save Query</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Query Name</mat-label>
+          <input matInput [(ngModel)]="queryName" placeholder="My Query">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Description</mat-label>
+          <textarea matInput [(ngModel)]="queryDescription" rows="3"
+                    placeholder="Optional description"></textarea>
+        </mat-form-field>
+
+        <div class="checkbox-group">
+          <mat-checkbox [(ngModel)]="isPublic">
+            Make this query public
+          </mat-checkbox>
+
+          <mat-checkbox [(ngModel)]="isFavorite">
+            Mark as favorite
+          </mat-checkbox>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-button (click)="showSaveDialog.set(false)">Cancel</button>
+        <button mat-raised-button color="primary" (click)="saveQuery()">Save</button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

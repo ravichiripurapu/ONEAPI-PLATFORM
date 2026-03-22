@@ -29,10 +29,10 @@ public class SourceInfo {
     @Enumerated(EnumType.STRING)
     private DatabaseType type;
 
-    @Column(nullable = false)
+    // Host can be null for embedded databases like H2
     private String host;
 
-    @Column(nullable = false)
+    // Port can be null for embedded databases
     private Integer port;
 
     @Column(nullable = false)

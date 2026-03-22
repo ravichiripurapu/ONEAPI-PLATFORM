@@ -1,0 +1,208 @@
+.query-builder {
+  padding: 24px;
+  height: 100%;
+  overflow-y: auto;
+
+  .builder-header {
+    margin-bottom: 24px;
+
+    h2 {
+      margin: 0;
+      font-size: 1.75rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+  }
+
+  .builder-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .builder-section, .sql-section, .preview-section, .save-section {
+    margin-bottom: 24px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+
+    mat-card-header {
+      padding: 16px;
+      background: var(--light-gray);
+      border-bottom: 1px solid var(--border-color);
+
+      mat-card-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--text-primary);
+
+        mat-icon {
+          color: var(--primary-color);
+        }
+      }
+    }
+  }
+
+  .selection-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+
+    mat-form-field {
+      flex: 1;
+      min-width: 200px;
+    }
+  }
+
+  .columns-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 16px;
+
+    h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+
+    .available-fields {
+      .field-list {
+        max-height: 400px;
+        overflow-y: auto;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 8px;
+
+        .field-item {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 12px;
+          cursor: pointer;
+          border-radius: 4px;
+          transition: background-color 0.2s;
+
+          &:hover {
+            background-color: var(--light-gray);
+          }
+
+          mat-icon {
+            color: var(--primary-color);
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+          }
+
+          span {
+            flex: 1;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+          }
+
+          .field-type {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            background: #e0e7ff;
+            padding: 2px 8px;
+            border-radius: 4px;
+          }
+        }
+      }
+    }
+
+    .selected-columns {
+      .empty-hint {
+        color: var(--text-secondary);
+        font-style: italic;
+        padding: 16px;
+        text-align: center;
+      }
+
+      .selected-column-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        margin-bottom: 8px;
+
+        .column-name {
+          flex: 1;
+          font-weight: 500;
+          color: var(--text-primary);
+        }
+
+        .aggregate-select {
+          width: 150px;
+        }
+      }
+    }
+  }
+
+  .sql-preview {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 16px;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  .sql-actions {
+    margin-top: 16px;
+    display: flex;
+    gap: 12px;
+
+    button mat-icon {
+      margin-right: 8px;
+    }
+  }
+
+  .preview-table-container {
+    overflow-x: auto;
+    margin-top: 16px;
+
+    .preview-table {
+      width: 100%;
+      border-collapse: collapse;
+
+      thead th {
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 0.875rem;
+        background: var(--light-gray);
+        border-bottom: 2px solid var(--border-color);
+      }
+
+      tbody td {
+        padding: 12px;
+        font-size: 0.875rem;
+        border-bottom: 1px solid var(--medium-gray);
+      }
+    }
+  }
+
+  .save-form {
+    margin-top: 16px;
+
+    .full-width {
+      width: 100%;
+    }
+
+    .save-actions {
+      margin-top: 16px;
+
+      button mat-icon {
+        margin-right: 8px;
+      }
+    }
+  }
+}

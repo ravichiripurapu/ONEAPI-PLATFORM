@@ -46,14 +46,8 @@ public class SavedQuery {
     @Column(nullable = false)
     private Boolean isFavorite = false;
 
-    @Column(name = "execution_count")
-    private Long executionCount = 0L;
-
-    @Column(name = "last_executed_at")
-    private LocalDateTime lastExecutedAt;
-
-    @Column(name = "avg_execution_time_ms")
-    private Long avgExecutionTimeMs;
+    // Note: Execution statistics (count, last executed, avg time) are tracked in AuditLog
+    // Use AuditLogRepository to query execution history for this saved query
 
     @CreatedBy
     @Column(name = "created_by", length = 50)

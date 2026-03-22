@@ -1,0 +1,52 @@
+<div class="admin-container">
+  <mat-toolbar color="primary" class="toolbar">
+    <span>OneAPI Admin</span>
+    <span class="spacer"></span>
+    <button mat-button [matMenuTriggerFor]="userMenu">
+      <mat-icon>account_circle</mat-icon>
+      {{ currentUser()?.login }}
+    </button>
+    <mat-menu #userMenu="matMenu">
+      <button mat-menu-item (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        Logout
+      </button>
+    </mat-menu>
+  </mat-toolbar>
+
+  <mat-sidenav-container class="sidenav-container">
+    <mat-sidenav mode="side" opened class="sidenav">
+      <div class="nav-menu">
+        <div class="nav-item" (click)="selectedTab = 'datasources'" [class.active]="selectedTab === 'datasources'">
+          <mat-icon>storage</mat-icon>
+          <span>Sources</span>
+        </div>
+        <div class="nav-item" (click)="selectedTab = 'users'" [class.active]="selectedTab === 'users'">
+          <mat-icon>people</mat-icon>
+          <span>Users</span>
+        </div>
+        <div class="nav-item" (click)="selectedTab = 'roles'" [class.active]="selectedTab === 'roles'">
+          <mat-icon>verified_user</mat-icon>
+          <span>Roles</span>
+        </div>
+        <mat-divider></mat-divider>
+        <div class="nav-item" [routerLink]="['/client']">
+          <mat-icon>dashboard</mat-icon>
+          <span>Client View</span>
+        </div>
+      </div>
+    </mat-sidenav>
+
+    <mat-sidenav-content class="content">
+      @if (selectedTab === 'users') {
+        <app-user-management></app-user-management>
+      }
+      @if (selectedTab === 'roles') {
+        <app-role-management></app-role-management>
+      }
+      @if (selectedTab === 'datasources') {
+        <app-datasource-management></app-datasource-management>
+      }
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>

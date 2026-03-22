@@ -17,6 +17,7 @@ import io.oneapi.sdk.model.DataEntity;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +40,10 @@ public class MetadataDiscoveryService {
     private final FieldInfoRepository fieldRepository;
     private final ConnectorFactory connectorFactory;
     private final ObjectMapper objectMapper;
+    private final MetadataEnrichmentService enrichmentService;
+
+    @Value("${oneapi.metadata.enrichment.enabled:true}")
+    private boolean enrichmentEnabled;
 
     /**
      * Discover metadata for a database connection using SDK connectors.
@@ -67,6 +72,14 @@ public class MetadataDiscoveryService {
 
             log.info("Metadata discovery completed: {} schemas, {} tables, {} columns",
                 result.getSchemaCount(), result.getTableCount(), result.getColumnCount());
+
+            // Phase 2: Trigger async metadata enrichment (non-blocking)
+            if (enrichmentEnabled) {
+                log.info("Triggering async metadata enrichment for datasource: {}", datasourceId);
+                enrichmentService.enrichDatasourceMetadataAsync(datasourceId);
+            } else {
+                log.info("Metadata enrichment is disabled");
+            }
 
             return result;
 
@@ -254,6 +267,12 @@ public class MetadataDiscoveryService {
         log.info("Existing metadata: {} schemas, {} tables, {} columns",
             existingSchemasCount, existingTablesCount, existingColumnsCount);
 
+        // Get list of existing table IDs before sync (to detect new tables)
+        Set<Long> existingTableIds = entityRepository.findBySourceId(datasourceId)
+            .stream()
+            .map(EntityInfo::getId)
+            .collect(Collectors.toSet());
+
         // Perform discovery (which updates existing or creates new)
         DiscoveryResult discoveryResult = discoverMetadata(datasourceId);
 
@@ -275,7 +294,49 @@ public class MetadataDiscoveryService {
         log.info("Sync completed. Changes: {} new schemas, {} new tables, {} new columns",
             newSchemas, newTables, newColumns);
 
+        // Enrich tables that don't have enrichment data yet (async)
+        if (enrichmentEnabled) {
+            // Get all tables for this datasource
+            List<EntityInfo> allTables = entityRepository.findBySourceId(datasourceId);
+
+            // Filter to find tables without enrichment
+            List<Long> unenrichedTableIds = allTables.stream()
+                .filter(table -> !table.isEnriched())
+                .map(EntityInfo::getId)
+                .toList();
+
+            if (!unenrichedTableIds.isEmpty()) {
+                log.info("Triggering async enrichment for {} unenriched tables during resync",
+                    unenrichedTableIds.size());
+                enrichUnenrichedTablesAsync(unenrichedTableIds);
+            } else {
+                log.info("All tables are already enriched, skipping enrichment");
+            }
+        }
+
         return result;
+    }
+
+    /**
+     * Enrich only unenriched tables (for sync operation).
+     * This enriches tables that don't have enrichment data yet.
+     */
+    private void enrichUnenrichedTablesAsync(List<Long> tableIds) {
+        if (tableIds.isEmpty()) {
+            return;
+        }
+
+        log.info("Enriching {} unenriched tables", tableIds.size());
+
+        // Process each table asynchronously
+        for (Long tableId : tableIds) {
+            try {
+                enrichmentService.enrichTableMetadata(tableId);
+                enrichmentService.enrichColumnMetadata(tableId);
+            } catch (Exception e) {
+                log.error("Failed to enrich table {}: {}", tableId, e.getMessage());
+            }
+        }
     }
 
     /**

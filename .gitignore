@@ -40,7 +40,9 @@ out/
 Thumbs.db
 
 # Application-specific
-
+.env
+.env.local
+.env.*.local
 
 # Logs
 logs/

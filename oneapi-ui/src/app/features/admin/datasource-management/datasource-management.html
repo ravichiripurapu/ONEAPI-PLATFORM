@@ -1,0 +1,343 @@
+<div class="datasource-management">
+  @if (!showCreateForm() && !viewingSource() && !discoveringSource()) {
+    <div class="header">
+      <h2>Source</h2>
+      <button mat-raised-button color="primary" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon>
+        Create Source
+      </button>
+    </div>
+
+    @if (loading()) {
+      <div class="loading-container">
+        <mat-spinner></mat-spinner>
+      </div>
+    } @else {
+      <mat-card>
+        <mat-card-content>
+          <table mat-table [dataSource]="datasources()" class="datasources-table">
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>Name</th>
+              <td mat-cell *matCellDef="let ds">
+                <div class="source-name">
+                  <mat-icon>storage</mat-icon>
+                  <span>{{ ds.name }}</span>
+                </div>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="type">
+              <th mat-header-cell *matHeaderCellDef>Type</th>
+              <td mat-cell *matCellDef="let ds">
+                <mat-chip>{{ ds.type }}</mat-chip>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="host">
+              <th mat-header-cell *matHeaderCellDef>Host</th>
+              <td mat-cell *matCellDef="let ds">
+                {{ ds.host || 'N/A' }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="port">
+              <th mat-header-cell *matHeaderCellDef>Port</th>
+              <td mat-cell *matCellDef="let ds">
+                {{ ds.port || 'N/A' }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="database">
+              <th mat-header-cell *matHeaderCellDef>Database</th>
+              <td mat-cell *matCellDef="let ds">{{ ds.database }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="active">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let ds">
+                <mat-icon [class.active-icon]="ds.active" [class.inactive-icon]="!ds.active">
+                  {{ ds.active ? 'check_circle' : 'cancel' }}
+                </mat-icon>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let ds">
+                <button mat-icon-button (click)="viewSource(ds)" matTooltip="View">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-icon-button (click)="openEditDialog(ds)" matTooltip="Edit">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button (click)="testConnection(ds)" matTooltip="Test Connection"
+                  [class.testing]="testingSource() === ds.id">
+                  @if (testingSource() === ds.id) {
+                    <mat-spinner diameter="20"></mat-spinner>
+                  } @else {
+                    <mat-icon>link</mat-icon>
+                  }
+                </button>
+                <button mat-icon-button color="accent" (click)="discoverSource(ds)" matTooltip="Discover Metadata"
+                  [disabled]="discoveringSourceId() === ds.id || resyncingSourceId() === ds.id">
+                  @if (discoveringSourceId() === ds.id) {
+                    <mat-spinner diameter="20"></mat-spinner>
+                  } @else {
+                    <mat-icon>explore</mat-icon>
+                  }
+                </button>
+                <button mat-icon-button color="primary" (click)="resyncSource(ds)" matTooltip="Resync Metadata"
+                  [disabled]="discoveringSourceId() === ds.id || resyncingSourceId() === ds.id">
+                  @if (resyncingSourceId() === ds.id) {
+                    <mat-spinner diameter="20"></mat-spinner>
+                  } @else {
+                    <mat-icon>sync</mat-icon>
+                  }
+                </button>
+                <button mat-icon-button color="warn" (click)="deleteDatasource(ds)" matTooltip="Delete">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="datasource-row"></tr>
+          </table>
+
+          @if (datasources().length === 0) {
+            <div class="empty-state">
+              <mat-icon>storage</mat-icon>
+              <h3>No sources configured</h3>
+              <p>Create your first source to get started</p>
+              <button mat-raised-button color="primary" (click)="openCreateDialog()">
+                <mat-icon>add</mat-icon>
+                Create Source
+              </button>
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+    }
+  }
+
+  <!-- Create/Edit Form -->
+  @if (showCreateForm()) {
+    <div class="form-container">
+      <div class="form-header">
+        <h2>{{ editingSource() ? 'Edit' : 'Create' }} Source</h2>
+        <button mat-icon-button (click)="cancelForm()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <mat-card>
+        <mat-card-content>
+          <form class="source-form" (ngSubmit)="saveSource()" #sourceForm="ngForm">
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Name</mat-label>
+                <input matInput [(ngModel)]="newSource.name" name="name" required>
+                <mat-icon matPrefix>label</mat-icon>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Database Type</mat-label>
+                <mat-select [(ngModel)]="newSource.type" name="type" required>
+                  @for (type of databaseTypes; track type) {
+                    <mat-option [value]="type">{{ type }}</mat-option>
+                  }
+                </mat-select>
+                <mat-icon matPrefix>category</mat-icon>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row two-cols">
+              <mat-form-field appearance="outline">
+                <mat-label>Host</mat-label>
+                <input matInput [(ngModel)]="newSource.host" name="host" required>
+                <mat-icon matPrefix>dns</mat-icon>
+                <mat-error>Host is required</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Port</mat-label>
+                <input matInput type="number" [(ngModel)]="newSource.port" name="port" required>
+                <mat-icon matPrefix>settings_ethernet</mat-icon>
+                <mat-error>Port is required</mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Database Name</mat-label>
+                <input matInput [(ngModel)]="newSource.database" name="database" required>
+                <mat-icon matPrefix>storage</mat-icon>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row two-cols">
+              <mat-form-field appearance="outline">
+                <mat-label>Username</mat-label>
+                <input matInput [(ngModel)]="newSource.username" name="username">
+                <mat-icon matPrefix>person</mat-icon>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Password</mat-label>
+                <input matInput type="password" [(ngModel)]="newSource.password" name="password">
+                <mat-icon matPrefix>lock</mat-icon>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Additional Parameters (Optional)</mat-label>
+                <input matInput [(ngModel)]="newSource.additionalParams" name="additionalParams">
+                <mat-icon matPrefix>settings</mat-icon>
+              </mat-form-field>
+            </div>
+
+            <div class="form-actions">
+              <button mat-button (click)="cancelForm()" type="button">Cancel</button>
+              <button mat-raised-button color="accent" (click)="testConnectionForm()" type="button"
+                [disabled]="testingConnection()">
+                @if (testingConnection()) {
+                  <mat-spinner diameter="20"></mat-spinner>
+                } @else {
+                  <mat-icon>link</mat-icon>
+                }
+                Test Connection
+              </button>
+              <button mat-raised-button color="primary" type="submit" [disabled]="!sourceForm.form.valid">
+                <mat-icon>save</mat-icon>
+                {{ editingSource() ? 'Update' : 'Create' }} Source
+              </button>
+            </div>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  }
+
+  <!-- View Source (Read-only) -->
+  @if (viewingSource()) {
+    <div class="form-container">
+      <div class="form-header">
+        <h2>View Source</h2>
+        <button mat-icon-button (click)="closeView()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <mat-card>
+        <mat-card-content>
+          <div class="view-container">
+            <div class="view-row">
+              <div class="view-label">Name:</div>
+              <div class="view-value">{{ viewingSource()!.name }}</div>
+            </div>
+            <div class="view-row">
+              <div class="view-label">Type:</div>
+              <div class="view-value"><mat-chip>{{ viewingSource()!.type }}</mat-chip></div>
+            </div>
+            <div class="view-row">
+              <div class="view-label">Host:</div>
+              <div class="view-value">{{ viewingSource()!.host || 'N/A' }}</div>
+            </div>
+            <div class="view-row">
+              <div class="view-label">Port:</div>
+              <div class="view-value">{{ viewingSource()!.port || 'N/A' }}</div>
+            </div>
+            <div class="view-row">
+              <div class="view-label">Database:</div>
+              <div class="view-value">{{ viewingSource()!.database }}</div>
+            </div>
+            <div class="view-row">
+              <div class="view-label">Username:</div>
+              <div class="view-value">{{ viewingSource()!.username || 'N/A' }}</div>
+            </div>
+            <div class="view-row">
+              <div class="view-label">Additional Parameters:</div>
+              <div class="view-value">{{ viewingSource()!.additionalParams || 'N/A' }}</div>
+            </div>
+            <div class="view-row">
+              <div class="view-label">Status:</div>
+              <div class="view-value">
+                <mat-icon [class.active-icon]="viewingSource()!.active" [class.inactive-icon]="!viewingSource()!.active">
+                  {{ viewingSource()!.active ? 'check_circle' : 'cancel' }}
+                </mat-icon>
+                {{ viewingSource()!.active ? 'Active' : 'Inactive' }}
+              </div>
+            </div>
+            <div class="view-row">
+              <div class="view-label">Created:</div>
+              <div class="view-value">{{ formatDate(viewingSource()!.createdAt) }}</div>
+            </div>
+            <div class="view-row">
+              <div class="view-label">Updated:</div>
+              <div class="view-value">{{ formatDate(viewingSource()!.updatedAt) }}</div>
+            </div>
+          </div>
+
+          <div class="view-actions">
+            <button mat-button (click)="closeView()">Close</button>
+            <button mat-raised-button color="primary" (click)="editFromView()">
+              <mat-icon>edit</mat-icon>
+              Edit
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  }
+
+  <!-- Discover Metadata Viewer -->
+  @if (discoveringSource()) {
+    <div class="discovery-container">
+      <div class="form-header">
+        <h2>Discovered Metadata - {{ discoveringSource()!.name }}</h2>
+        <button mat-icon-button (click)="closeDiscovery()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <mat-card>
+        <mat-card-content>
+          @if (discoveryLoading()) {
+            <div class="loading-container">
+              <mat-spinner></mat-spinner>
+              <p>Discovering metadata...</p>
+            </div>
+          } @else if (discoveryError()) {
+            <div class="error-container">
+              <mat-icon color="warn">error</mat-icon>
+              <h3>Discovery Failed</h3>
+              <p>{{ discoveryError() }}</p>
+              <button mat-raised-button color="primary" (click)="retryDiscovery()">
+                <mat-icon>refresh</mat-icon>
+                Retry
+              </button>
+            </div>
+          } @else {
+            <div class="metadata-explorer">
+              <!-- Discovery Summary -->
+              @if (discoveryResult()) {
+                <div class="discovery-summary">
+                  <mat-icon>info</mat-icon>
+                  <span>Discovered {{ discoveryResult()!.domainsCount }} schemas,
+                    {{ discoveryResult()!.entitiesCount }} tables,
+                    {{ discoveryResult()!.fieldsCount }} columns</span>
+                </div>
+              }
+
+              <!-- Use Shared Metadata Tree Explorer Component -->
+              <app-metadata-tree-explorer [sources]="[discoveringSource()!]" [autoLoadSources]="false"></app-metadata-tree-explorer>
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+    </div>
+  }
+</div>

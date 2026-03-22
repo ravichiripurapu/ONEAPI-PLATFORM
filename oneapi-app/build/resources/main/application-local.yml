@@ -10,7 +10,7 @@ spring:
       - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
 
   datasource:
-    url: jdbc:h2:file:./data/oneapi;AUTO_SERVER=TRUE
+    url: jdbc:h2:file:/Users/ravi/JavaProjects/oneapi-platform/h2-testdb-data/testdb;AUTO_SERVER=TRUE
     driver-class-name: org.h2.Driver
     username: sa
     password:

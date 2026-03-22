@@ -61,4 +61,45 @@ public class UserPreferencesController {
         preferencesService.deletePreferences(userId);
         return ResponseEntity.noContent().build();
     }
+
+    // ========== Admin Endpoints ==========
+
+    /**
+     * Get preferences for any user (Admin only).
+     * GET /api/preferences/user/{userId}
+     */
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<UserPreferences> getPreferencesByUserId(@PathVariable String userId) {
+        UserPreferences prefs = preferencesService.getPreferences(userId);
+        return ResponseEntity.ok(prefs);
+    }
+
+    /**
+     * Update preferences for any user (Admin only).
+     * PUT /api/preferences/user/{userId}
+     */
+    @PutMapping("/user/{userId}")
+    public ResponseEntity<UserPreferences> updatePreferencesByUserId(
+            @PathVariable String userId,
+            @RequestBody UserPreferences request) {
+
+        UserPreferences updated = preferencesService.updatePreferences(
+                userId,
+                request.getPageSize(),
+                request.getTtlMinutes(),
+                request.getMaxConcurrentSessions()
+        );
+
+        return ResponseEntity.ok(updated);
+    }
+
+    /**
+     * Delete preferences for any user (Admin only).
+     * DELETE /api/preferences/user/{userId}
+     */
+    @DeleteMapping("/user/{userId}")
+    public ResponseEntity<Void> deletePreferencesByUserId(@PathVariable String userId) {
+        preferencesService.deletePreferences(userId);
+        return ResponseEntity.noContent().build();
+    }
 }

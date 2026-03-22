@@ -1,0 +1,142 @@
+<div class="client-container">
+  <mat-toolbar color="primary" class="toolbar">
+    <span>OneAPI Client</span>
+    <span class="spacer"></span>
+    <button mat-button [matMenuTriggerFor]="userMenu">
+      <mat-icon>account_circle</mat-icon>
+      {{ currentUser()?.login }}
+    </button>
+    <mat-menu #userMenu="matMenu">
+      <button mat-menu-item (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        Logout
+      </button>
+    </mat-menu>
+  </mat-toolbar>
+
+  <mat-sidenav-container class="sidenav-container">
+    <mat-sidenav mode="side" opened class="sidenav">
+      <div class="nav-menu">
+        <div class="nav-item" (click)="selectedTab = 'dashboards'" [class.active]="selectedTab === 'dashboards'">
+          <mat-icon>dashboard</mat-icon>
+          <span>My Dashboards</span>
+        </div>
+        <div class="nav-item" (click)="selectedTab = 'explorer'" [class.active]="selectedTab === 'explorer'">
+          <mat-icon>explore</mat-icon>
+          <span>Data Explorer</span>
+        </div>
+        <div class="nav-item" (click)="selectedTab = 'queries'" [class.active]="selectedTab === 'queries'">
+          <mat-icon>list_alt</mat-icon>
+          <span>My Queries</span>
+        </div>
+        <div class="nav-item" (click)="selectedTab = 'builder'" [class.active]="selectedTab === 'builder'">
+          <mat-icon>build_circle</mat-icon>
+          <span>Query Builder</span>
+        </div>
+        <div class="nav-item" (click)="selectedTab = 'studio'" [class.active]="selectedTab === 'studio'">
+          <mat-icon>auto_fix_high</mat-icon>
+          <span>Query Studio</span>
+        </div>
+        <mat-divider></mat-divider>
+        @if (isAdmin()) {
+          <div class="nav-item" [routerLink]="['/admin']">
+            <mat-icon>admin_panel_settings</mat-icon>
+            <span>Admin Panel</span>
+          </div>
+        }
+      </div>
+    </mat-sidenav>
+
+    <mat-sidenav-content class="content">
+      @if (selectedTab === 'home') {
+        <div class="home-view">
+          <h1>Welcome to OneAPI</h1>
+          <p class="subtitle">Explore your data, build queries, and create dashboards</p>
+
+          <div class="feature-cards">
+            <mat-card class="feature-card" (click)="navigateToExplorer()">
+              <mat-card-header>
+                <mat-icon color="primary">explore</mat-icon>
+              </mat-card-header>
+              <mat-card-content>
+                <h3>Data Explorer</h3>
+                <p>Browse databases, tables, and columns. View schema and preview data from your datasources.</p>
+              </mat-card-content>
+              <mat-card-actions>
+                <button mat-button color="primary">Open Data Explorer →</button>
+              </mat-card-actions>
+            </mat-card>
+
+            <mat-card class="feature-card" (click)="navigateToQueries()">
+              <mat-card-header>
+                <mat-icon color="accent">list</mat-icon>
+              </mat-card-header>
+              <mat-card-content>
+                <h3>My Queries</h3>
+                <p>View, edit, and manage all your saved queries. Run queries and export results.</p>
+              </mat-card-content>
+              <mat-card-actions>
+                <button mat-button color="primary">View My Queries →</button>
+              </mat-card-actions>
+            </mat-card>
+
+            <mat-card class="feature-card" (click)="navigateToBuilder()">
+              <mat-card-header>
+                <mat-icon color="warn">build</mat-icon>
+              </mat-card-header>
+              <mat-card-content>
+                <h3>Query Builder</h3>
+                <p>Build SQL queries visually without writing code. Filter, sort, and aggregate your data.</p>
+              </mat-card-content>
+              <mat-card-actions>
+                <button mat-button color="primary">Open Query Builder →</button>
+              </mat-card-actions>
+            </mat-card>
+
+            <mat-card class="feature-card" (click)="navigateToStudio()">
+              <mat-card-header>
+                <mat-icon style="color: #9c27b0">auto_fix_high</mat-icon>
+              </mat-card-header>
+              <mat-card-content>
+                <h3>Query Studio</h3>
+                <p>Advanced query builder with multi-table joins, SQL editor, and AI-powered natural language queries.</p>
+              </mat-card-content>
+              <mat-card-actions>
+                <button mat-button color="primary">Open Query Studio →</button>
+              </mat-card-actions>
+            </mat-card>
+          </div>
+        </div>
+      }
+      @if (selectedTab === 'dashboards') {
+        <div class="dashboards-view">
+          <div class="coming-soon-container">
+            <mat-card class="coming-soon-card">
+              <mat-card-content>
+                <mat-icon class="coming-soon-icon">dashboard</mat-icon>
+                <h2>Dashboards</h2>
+                <p class="coming-soon-badge">Coming Soon</p>
+                <p class="coming-soon-description">
+                  Create and manage custom dashboards with your queries and visualizations.
+                  Build interactive reports and share insights with your team.
+                </p>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+      }
+      @if (selectedTab === 'explorer') {
+        <app-data-explorer></app-data-explorer>
+      }
+      @if (selectedTab === 'queries') {
+        <app-query-list></app-query-list>
+      }
+      @if (selectedTab === 'builder') {
+        <app-query-builder></app-query-builder>
+      }
+      @if (selectedTab === 'studio') {
+        <app-query-executor></app-query-executor>
+      }
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>

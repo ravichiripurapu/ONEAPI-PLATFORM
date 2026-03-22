@@ -1,0 +1,39 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <h1>OneAPI Platform</h1>
+      <p>Sign in to continue</p>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <div *ngIf="error" class="error-message">{{ error }}</div>
+
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" formControlName="username" class="form-control"
+               [class.is-invalid]="submitted && f['username'].errors" />
+        <div *ngIf="submitted && f['username'].errors" class="invalid-feedback">
+          <div *ngIf="f['username'].errors['required']">Username is required</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" formControlName="password" class="form-control"
+               [class.is-invalid]="submitted && f['password'].errors" />
+        <div *ngIf="submitted && f['password'].errors" class="invalid-feedback">
+          <div *ngIf="f['password'].errors['required']">Password is required</div>
+        </div>
+      </div>
+
+      <div class="form-group checkbox">
+        <label><input type="checkbox" formControlName="rememberMe" /> Remember me</label>
+      </div>
+
+      <button type="submit" [disabled]="loading" class="btn-submit">
+        <span *ngIf="!loading">Sign In</span>
+        <span *ngIf="loading">Signing in...</span>
+      </button>
+    </form>
+  </div>
+</div>

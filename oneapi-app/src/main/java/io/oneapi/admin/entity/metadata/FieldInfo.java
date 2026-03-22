@@ -1,5 +1,8 @@
 package io.oneapi.admin.entity.metadata;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -8,6 +11,8 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Entity representing a field (column/property) discovered from a data entity.
@@ -77,7 +82,71 @@ public class FieldInfo {
     @Column(name = "discovered_at")
     private LocalDateTime discoveredAt;
 
+    // ========== AI-Generated Metadata Enrichment Fields ==========
+
+    @Column(name = "business_name")
+    private String businessName;
+
+    @Column(name = "business_description", length = 500)
+    private String businessDescription;
+
+    @Column(name = "column_aliases", length = 500)
+    private String columnAliases; // JSON array of alternate names
+
+    @Column(name = "data_classification", length = 50)
+    private String dataClassification; // e.g., "PII", "Sensitive", "Public"
+
+    @Column(name = "sample_values", length = 500)
+    private String sampleValues; // JSON array of example values
+
+    @Column(name = "value_pattern", length = 200)
+    private String valuePattern; // e.g., "email", "phone", "date", "uuid"
+
+    // ========== Other Fields ==========
+
     @CreatedDate
     @Column(name = "created_date", updatable = false)
     private LocalDateTime createdDate;
+
+    // ========== Convenience Methods for JSON Fields ==========
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+    public List<String> getColumnAliasesList() {
+        if (columnAliases == null || columnAliases.isEmpty()) {
+            return new ArrayList<>();
+        }
+        try {
+            return OBJECT_MAPPER.readValue(columnAliases, new TypeReference<List<String>>() {});
+        } catch (JsonProcessingException e) {
+            return new ArrayList<>();
+        }
+    }
+
+    public void setColumnAliasesList(List<String> aliases) {
+        try {
+            this.columnAliases = OBJECT_MAPPER.writeValueAsString(aliases);
+        } catch (JsonProcessingException e) {
+            this.columnAliases = "[]";
+        }
+    }
+
+    public List<String> getSampleValuesList() {
+        if (sampleValues == null || sampleValues.isEmpty()) {
+            return new ArrayList<>();
+        }
+        try {
+            return OBJECT_MAPPER.readValue(sampleValues, new TypeReference<List<String>>() {});
+        } catch (JsonProcessingException e) {
+            return new ArrayList<>();
+        }
+    }
+
+    public void setSampleValuesList(List<String> samples) {
+        try {
+            this.sampleValues = OBJECT_MAPPER.writeValueAsString(samples);
+        } catch (JsonProcessingException e) {
+            this.sampleValues = "[]";
+        }
+    }
 }

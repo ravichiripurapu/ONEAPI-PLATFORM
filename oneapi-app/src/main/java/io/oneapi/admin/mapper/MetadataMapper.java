@@ -67,6 +67,10 @@ public class MetadataMapper {
         dto.setLastSyncedAt(entity.getLastSyncedAt());
         dto.setCreatedDate(entity.getCreatedDate());
 
+        // Enrichment fields
+        dto.setBusinessName(entity.getBusinessName());
+        dto.setBusinessDescription(entity.getBusinessDescription());
+
         return dto;
     }
 
@@ -108,6 +112,10 @@ public class MetadataMapper {
         dto.setOrdinalPosition(entity.getOrdinalPosition());
         dto.setDiscoveredAt(entity.getDiscoveredAt());
         dto.setCreatedDate(entity.getCreatedDate());
+
+        // Enrichment fields
+        dto.setBusinessName(entity.getBusinessName());
+        dto.setBusinessDescription(entity.getBusinessDescription());
 
         return dto;
     }

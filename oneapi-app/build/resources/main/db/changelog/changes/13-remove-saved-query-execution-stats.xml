@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="13-remove-saved-query-execution-stats" author="oneapi">
+        <comment>
+            Remove execution statistics columns from saved_query table.
+            These statistics are now tracked in audit_log table for better analytics.
+        </comment>
+
+        <!-- Drop execution_count column -->
+        <dropColumn tableName="saved_query" columnName="execution_count"/>
+
+        <!-- Drop last_executed_at column -->
+        <dropColumn tableName="saved_query" columnName="last_executed_at"/>
+
+        <!-- Drop avg_execution_time_ms column -->
+        <dropColumn tableName="saved_query" columnName="avg_execution_time_ms"/>
+
+        <rollback>
+            <!-- Rollback: Re-add the columns if needed -->
+            <addColumn tableName="saved_query">
+                <column name="execution_count" type="BIGINT" defaultValueNumeric="0">
+                    <constraints nullable="true"/>
+                </column>
+            </addColumn>
+
+            <addColumn tableName="saved_query">
+                <column name="last_executed_at" type="TIMESTAMP">
+                    <constraints nullable="true"/>
+                </column>
+            </addColumn>
+
+            <addColumn tableName="saved_query">
+                <column name="avg_execution_time_ms" type="BIGINT">
+                    <constraints nullable="true"/>
+                </column>
+            </addColumn>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

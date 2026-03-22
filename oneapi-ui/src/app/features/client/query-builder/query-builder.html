@@ -1,0 +1,292 @@
+<div class="query-builder">
+  <div class="builder-header">
+    <h2>Query Builder</h2>
+  </div>
+
+  <div class="builder-container">
+    <!-- Step 1: Data Selection -->
+    <mat-card class="builder-section">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>database</mat-icon>
+          1. Select Data Source
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="selection-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Source</mat-label>
+            <mat-select [(ngModel)]="selectedSource" (ngModelChange)="onSourceChange()">
+              @for (source of sources(); track source.id) {
+                <mat-option [value]="source">{{ source.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          @if (selectedSource()) {
+            <mat-form-field appearance="outline">
+              <mat-label>Schema</mat-label>
+              <mat-select [(ngModel)]="selectedDomain" (ngModelChange)="onDomainChange()">
+                @for (domain of domains(); track domain.id) {
+                  <mat-option [value]="domain">{{ domain.schemaName }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          }
+
+          @if (selectedDomain()) {
+            <mat-form-field appearance="outline">
+              <mat-label>Table</mat-label>
+              <mat-select [(ngModel)]="selectedEntity" (ngModelChange)="onEntityChange()">
+                @for (entity of entities(); track entity.id) {
+                  <mat-option [value]="entity">{{ entity.tableName }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    @if (selectedEntity()) {
+      <!-- Step 2: Column Selection -->
+      <mat-card class="builder-section">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>view_column</mat-icon>
+            2. Select Columns
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="columns-section">
+            <div class="available-fields">
+              <h4>Available Fields</h4>
+              <div class="field-list">
+                @for (field of fields(); track field.id) {
+                  <div class="field-item" (click)="addColumn(field)">
+                    <mat-icon>add_circle_outline</mat-icon>
+                    <span>{{ field.columnName }}</span>
+                    <span class="field-type">{{ field.dataType }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="selected-columns">
+              <h4>Selected Columns ({{ selectedColumns().length }})</h4>
+              @if (selectedColumns().length === 0) {
+                <p class="empty-hint">Click on fields to add them</p>
+              } @else {
+                @for (col of selectedColumns(); track $index) {
+                  <div class="selected-column-item">
+                    <span class="column-name">{{ col.field.columnName }}</span>
+                    <mat-form-field appearance="outline" class="aggregate-select">
+                      <mat-label>Aggregate</mat-label>
+                      <mat-select [(ngModel)]="col.aggregate" (ngModelChange)="updateColumnAggregate($index, $event)">
+                        <mat-option [value]="null">None</mat-option>
+                        @for (agg of aggregateFunctions; track agg) {
+                          <mat-option [value]="agg">{{ agg }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                    <button mat-icon-button (click)="removeColumn($index)" color="warn">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                }
+              }
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Step 3: Filters -->
+      <mat-card class="builder-section">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>filter_list</mat-icon>
+            3. Add Filters (Optional)
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <button mat-raised-button (click)="addFilter()" color="primary">
+            <mat-icon>add</mat-icon>
+            Add Filter
+          </button>
+
+          @if (filters().length > 0) {
+            <div class="filters-list">
+              @for (filter of filters(); track $index) {
+                <div class="filter-row">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Field</mat-label>
+                    <mat-select [(ngModel)]="filter.field" (ngModelChange)="updateFilter()">
+                      @for (field of fields(); track field.id) {
+                        <mat-option [value]="field">{{ field.columnName }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline">
+                    <mat-label>Operator</mat-label>
+                    <mat-select [(ngModel)]="filter.operator" (ngModelChange)="updateFilter()">
+                      @for (op of operators; track op) {
+                        <mat-option [value]="op">{{ op }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+
+                  @if (filter.operator !== 'IS NULL' && filter.operator !== 'IS NOT NULL') {
+                    <mat-form-field appearance="outline" class="filter-value">
+                      <mat-label>Value</mat-label>
+                      <input matInput [(ngModel)]="filter.value" (ngModelChange)="updateFilter()">
+                    </mat-form-field>
+                  }
+
+                  <button mat-icon-button (click)="removeFilter($index)" color="warn">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              }
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Step 4: Sort & Limit -->
+      <mat-card class="builder-section">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>sort</mat-icon>
+            4. Sort & Limit (Optional)
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="sort-limit-row">
+            <mat-form-field appearance="outline">
+              <mat-label>Order By</mat-label>
+              <mat-select [(ngModel)]="orderByField" (ngModelChange)="generateSQL()">
+                <mat-option [value]="null">None</mat-option>
+                @for (field of fields(); track field.id) {
+                  <mat-option [value]="field">{{ field.columnName }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            @if (orderByField()) {
+              <mat-form-field appearance="outline">
+                <mat-label>Direction</mat-label>
+                <mat-select [(ngModel)]="orderDirection" (ngModelChange)="generateSQL()">
+                  <mat-option value="ASC">Ascending</mat-option>
+                  <mat-option value="DESC">Descending</mat-option>
+                </mat-select>
+              </mat-form-field>
+            }
+
+            <mat-form-field appearance="outline">
+              <mat-label>Limit</mat-label>
+              <input matInput type="number" [(ngModel)]="limitValue" (ngModelChange)="generateSQL()">
+            </mat-form-field>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Generated SQL -->
+      <mat-card class="sql-section">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>code</mat-icon>
+            Generated SQL
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          @if (generatedSQL()) {
+            <pre class="sql-preview">{{ generatedSQL() }}</pre>
+            <div class="sql-actions">
+              <button mat-raised-button color="primary" (click)="previewQuery()" [disabled]="loading()">
+                <mat-icon>visibility</mat-icon>
+                Preview
+              </button>
+            </div>
+          } @else {
+            <p class="empty-hint">Select columns to generate SQL</p>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Preview Results -->
+      @if (showPreview()) {
+        <mat-card class="preview-section">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>preview</mat-icon>
+              Preview Results (First 10 rows)
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            @if (loading()) {
+              <mat-spinner></mat-spinner>
+            } @else if (previewData().length > 0) {
+              <div class="preview-table-container">
+                <table class="preview-table">
+                  <thead>
+                    <tr>
+                      @for (col of previewColumns(); track col) {
+                        <th>{{ col }}</th>
+                      }
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (row of previewData(); track $index) {
+                      <tr>
+                        @for (col of previewColumns(); track col) {
+                          <td>{{ row[col] }}</td>
+                        }
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            } @else {
+              <p>No results</p>
+            }
+          </mat-card-content>
+        </mat-card>
+      }
+
+      <!-- Save Query -->
+      <mat-card class="save-section">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>save</mat-icon>
+            Save Query
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="save-form">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Query Name</mat-label>
+              <input matInput [(ngModel)]="queryName" required>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Description</mat-label>
+              <textarea matInput [(ngModel)]="queryDescription" rows="2"></textarea>
+            </mat-form-field>
+
+            <mat-checkbox [(ngModel)]="isPublic">
+              Make this query public
+            </mat-checkbox>
+
+            <div class="save-actions">
+              <button mat-raised-button color="primary" (click)="saveQuery()" [disabled]="!queryName || !generatedSQL() || loading()">
+                <mat-icon>save</mat-icon>
+                Save Query
+              </button>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    }
+  </div>
+</div>

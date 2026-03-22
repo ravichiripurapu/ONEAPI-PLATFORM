@@ -358,13 +358,21 @@ public class DatabaseQueryService {
 
     /**
      * Remove LIMIT and OFFSET clauses from SQL query.
+     * Also removes trailing semicolon to prevent syntax errors.
      */
     private String removeLimitOffset(String sql) {
         // Simple regex to remove LIMIT and OFFSET (case insensitive)
         // This is a basic implementation - production code might need more sophisticated parsing
         String result = sql.replaceAll("(?i)\\s+LIMIT\\s+\\d+", "");
         result = result.replaceAll("(?i)\\s+OFFSET\\s+\\d+", "");
-        return result.trim();
+        result = result.trim();
+
+        // Remove trailing semicolon if present
+        if (result.endsWith(";")) {
+            result = result.substring(0, result.length() - 1).trim();
+        }
+
+        return result;
     }
 
     /**

@@ -173,6 +173,11 @@ public interface PermissionRepository extends JpaRepository<Permission, Long> {
     List<Long> getAccessibleFieldIds(@Param("roleIds") List<Long> roleIds, @Param("entityId") Long entityId);
 
     /**
+     * Find permissions by role ID and source ID
+     */
+    List<Permission> findByRoleIdAndSourceId(Long roleId, Long sourceId);
+
+    /**
      * Delete all permissions for a role and source
      */
     void deleteByRoleIdAndSourceId(Long roleId, Long sourceId);
